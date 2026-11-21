@@ -15,7 +15,7 @@
   ├─ POST /api/event          → 上报匿名行为事件
   └─ POST /api/chat           → 调 AI，拿回复
         │
-Cloudflare Pages 项目 ideal-self-chat
+Cloudflare Pages 项目 ideal-self-chat-test1（域名仍是 ideal-self-chat.pages.dev）
   ├─ app/index.html           → 静态页面
   └─ app/_worker.js           → 同域名后端（Pages 高级模式）
         ├─ Supabase REST      → sessions / events / feedbacks
@@ -117,8 +117,8 @@ curl https://ideal-self-chat.pages.dev/api
 沿用同工作区「日常记账」项目的习惯：
 
 ```bash
-git remote add origin https://github.com/jwdudu/ideal-self-chat.git
-git remote add gitee  git@gitee.com:jwdudu/ideal-self-chat.git
+git remote add origin https://github.com/jwdudu/SelfExploration.git
+git remote add gitee  git@gitee.com:jwdudu/self-exploration.git
 git push origin main && git push gitee main
 ```
 

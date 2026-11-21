@@ -5,7 +5,7 @@
   "description": "理想的自己 - AI 陪伴式自我对话产品",
   "scripts": {
     "dev": "wrangler pages dev app --port 8788",
-    "deploy": "wrangler pages deploy app --project-name ideal-self-chat --branch=main"
+    "deploy": "wrangler pages deploy app --project-name ideal-self-chat-test1 --branch=main"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"

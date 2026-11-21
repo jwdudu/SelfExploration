@@ -2182,7 +2182,7 @@
             <button class="edit-button" onclick="editProfile()">编辑</button>
             <div class="feedback-section">
                 <div class="feedback-title">反馈留言</div>
-                <textarea id="feedbackTextarea" class="feedback-textarea" placeholder="有什么想说的？时空接线员会经常查看。"></textarea>
+                <textarea id="feedbackTextarea" class="feedback-textarea" placeholder="有什么想说的？内容会发送给产品方，用于改进体验。"></textarea>
                 <button class="feedback-submit-btn" onclick="submitProfileFeedback()">发送</button>
             </div>
 
@@ -2210,6 +2210,9 @@
                         在开始之前，让我们先设置一下<br>
                         五年后理想的你
                     </div>
+                    <p style="font-size: 12px; color: #999999; line-height: 1.7; text-align: left; margin: 0 0 22px;">
+                        你的对话只保存在这台设备上，服务器不会保存聊天内容。你主动发送的反馈会用于改进产品；AI 回复需要把本轮对话发送给模型服务商处理。
+                    </p>
                     <div style="margin: 0 0 28px; text-align: left;">
                         <p style="font-size: 14px; color: #999999; margin-bottom: 10px;">我该怎么称呼你？</p>
                         <input type="text" id="nicknameInput" class="onboarding-input" style="min-height: auto; padding: 12px 14px; margin-bottom: 0;" placeholder="输入你的名字或昵称（可选）" maxlength="10">
@@ -2395,7 +2398,7 @@
             </div>
             <div id="retentionFollowup" style="display: none; margin-bottom: 4px;">
                 <p class="retention-followup-text" id="retentionFollowupText"></p>
-                <textarea id="retentionTextarea" class="retention-textarea" placeholder="可以说说吗？（可选）"></textarea>
+                <textarea id="retentionTextarea" class="retention-textarea" placeholder="可以说说吗？（可选，内容会发送给产品方）"></textarea>
             </div>
             <div class="retention-feedback-footer">
                 <button class="retention-skip-btn" onclick="skipRetentionFeedback()">跳过</button>
@@ -3482,6 +3485,14 @@ ${lines}
 
         function submitRetentionFeedback() {
             const text = document.getElementById('retentionTextarea').value.trim();
+
+            // 留存反馈：用户主动提交，属于授权数据（原文可上报）
+            trackEvent('retention_feedback_submitted', {
+                willingness: _selectedRetentionOption,
+                feedbackLength: text.length,
+                feedbackText: text
+            });
+
             const feedbacks = JSON.parse(localStorage.getItem('retentionFeedbacks') || '[]');
             feedbacks.push({ option: _selectedRetentionOption, text, timestamp: new Date().toISOString() });
             localStorage.setItem('retentionFeedbacks', JSON.stringify(feedbacks));
@@ -3511,10 +3522,11 @@ ${lines}
             const text = textarea.value.trim();
             if (!text) return;
             
-            // 反馈问题埋点
-            trackEvent('submit_feedback', { 
+            // 反馈留言：用户主动点「发送」，属于授权数据（原文可上报）
+            trackEvent('feedback_submitted', {
+                feedbackType: 'profile',
                 feedbackLength: text.length,
-                feedbackContent: text 
+                feedbackContent: text
             });
             
             const feedbacks = JSON.parse(localStorage.getItem('userFeedbacks') || '[]');

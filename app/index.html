@@ -426,17 +426,6 @@
         }
 
         /* 文字淡入动画 */
-        .diary-header {
-            text-align: center;
-            padding: 40px 20px;
-            color: #666666;
-            line-height: 2;
-            font-size: 16px;
-            border-bottom: 1px solid #E8E8E8;
-            margin-bottom: 30px;
-            position: relative;
-        }
-
         .text-line {
             opacity: 0;
             /* 动画由 JS 在字体加载完后触发，避免字体未就绪时动画已播完 */
@@ -2116,11 +2105,11 @@
             <div class="text-line line-4">而是理想的你自己。</div>
             <div class="text-line line-5" style="margin-top: 1em;">温柔的、接纳的、不批判的你。</div>
         </div>
+        <div class="clear-history-container">
+            <button class="clear-history-btn" onclick="clearAllHistory()">🗑️ 清空历史</button>
+        </div>
         <div class="diary-list" id="diaryList">
-            <div class="clear-history-container">
-                <button class="clear-history-btn" onclick="clearAllHistory()">🗑️ 清空历史</button>
-            </div>
-            <!-- 对话记录会动态添加到这里 -->
+            <!-- 对话记录会动态添加到这里（loadDiaryList 会重写这里，所以清空按钮放在外面） -->
         </div>
         <button class="new-chat-button" onclick="startNewConversationFromButton()" title="开始新对话">
             <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="-5 -10 110 135">
@@ -2228,42 +2217,42 @@
                 <h2 class="onboarding-title">选择你的核心特质</h2>
                 <p class="onboarding-subtitle">如果用一个动物来代表五年后的你，你会选哪个？</p>
                 <div class="animal-grid">
-                    <div class="animal-option" onclick="selectAnimal('tiger', '老虎', '果断、有力量、不拖延')">
+                    <div class="animal-option" onclick="selectAnimal(this, 'tiger', '老虎', '果断、有力量、不拖延')">
                         <div class="animal-icon">🐯</div>
                         <div class="animal-name">老虎</div>
                         <div class="animal-trait">果断、有力量、不拖延</div>
                     </div>
-                    <div class="animal-option" onclick="selectAnimal('leopard', '豹子', '敏捷、专注、高效')">
+                    <div class="animal-option" onclick="selectAnimal(this, 'leopard', '豹子', '敏捷、专注、高效')">
                         <div class="animal-icon">🐆</div>
                         <div class="animal-name">豹子</div>
                         <div class="animal-trait">敏捷、专注、高效</div>
                     </div>
-                    <div class="animal-option" onclick="selectAnimal('elephant', '大象', '稳重、智慧、有耐心')">
+                    <div class="animal-option" onclick="selectAnimal(this, 'elephant', '大象', '稳重、智慧、有耐心')">
                         <div class="animal-icon">🐘</div>
                         <div class="animal-name">大象</div>
                         <div class="animal-trait">稳重、智慧、有耐心</div>
                     </div>
-                    <div class="animal-option" onclick="selectAnimal('fox', '狐狸', '灵活、聪慧、善于应变')">
+                    <div class="animal-option" onclick="selectAnimal(this, 'fox', '狐狸', '灵活、聪慧、善于应变')">
                         <div class="animal-icon">🦊</div>
                         <div class="animal-name">狐狸</div>
                         <div class="animal-trait">灵活、聪慧、善于应变</div>
                     </div>
-                    <div class="animal-option" onclick="selectAnimal('wolf', '狼', '坚韧、独立、有目标感')">
+                    <div class="animal-option" onclick="selectAnimal(this, 'wolf', '狼', '坚韧、独立、有目标感')">
                         <div class="animal-icon">🐺</div>
                         <div class="animal-name">狼</div>
                         <div class="animal-trait">坚韧、独立、有目标感</div>
                     </div>
-                    <div class="animal-option" onclick="selectAnimal('eagle', '鹰', '高瞻远瞩、自由、不被束缚')">
+                    <div class="animal-option" onclick="selectAnimal(this, 'eagle', '鹰', '高瞻远瞩、自由、不被束缚')">
                         <div class="animal-icon">🦅</div>
                         <div class="animal-name">鹰</div>
                         <div class="animal-trait">高瞻远瞩、自由、不被束缚</div>
                     </div>
-                    <div class="animal-option" onclick="selectAnimal('deer', '鹿', '温柔、敏感、与自然和谐')">
+                    <div class="animal-option" onclick="selectAnimal(this, 'deer', '鹿', '温柔、敏感、与自然和谐')">
                         <div class="animal-icon">🦌</div>
                         <div class="animal-name">鹿</div>
                         <div class="animal-trait">温柔、敏感、与自然和谐</div>
                     </div>
-                    <div class="animal-option" onclick="selectAnimal('bear', '熊', '强大、保护、有安全感')">
+                    <div class="animal-option" onclick="selectAnimal(this, 'bear', '熊', '强大、保护、有安全感')">
                         <div class="animal-icon">🐻</div>
                         <div class="animal-name">熊</div>
                         <div class="animal-trait">强大、保护、有安全感</div>
@@ -2426,7 +2415,29 @@
     <script>
         // ========== 后端 API 配置 ==========
         const API_BASE = ""; // 同域名（Pages Functions）
-        
+
+        // 安全读取 localStorage 中的 JSON：损坏时返回兜底值，避免整页白屏
+        function readJSON(key, fallback) {
+            try {
+                const raw = localStorage.getItem(key);
+                return raw ? JSON.parse(raw) : fallback;
+            } catch (e) {
+                console.warn('localStorage 解析失败:', key, e);
+                return fallback;
+            }
+        }
+
+        // 安全写入 localStorage：配额满或隐私模式失败时不让主流程崩溃
+        function writeJSON(key, value) {
+            try {
+                localStorage.setItem(key, JSON.stringify(value));
+                return true;
+            } catch (e) {
+                console.warn('localStorage 写入失败:', key, e);
+                return false;
+            }
+        }
+
         // ========== 13个埋点实现说明 ==========
         // 已全部实现（13个）：
         // 1. page_load - 页面加载完成（DOMContentLoaded中触发）
@@ -2446,24 +2457,46 @@
         // 使用方式：在对应功能函数中调用 trackEvent('埋点名称', { 附加数据 })
         
         // 初始化会话
+        // 失败重试 2 次；仍失败则本地生成一个 sessionId，
+        // 保证后续埋点不会被静默丢弃（这类会话在 sessions 表里没有对应行）。
         async function initSession() {
-            try {
-                const channel = new URLSearchParams(window.location.search).get("channel") || "default";
-                const res = await fetch(`${API_BASE}/api/session/init`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ channel })
-                });
-                const data = await res.json();
-                if (data.code === 0 && data.data && data.data.sessionId) {
-                    localStorage.setItem("sessionId", data.data.sessionId);
-                    return data.data.sessionId;
+            const channel = new URLSearchParams(window.location.search).get("channel") || "default";
+            const requestInit = {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ channel })
+            };
+            const retryDelays = [0, 500, 1500];
+
+            for (let i = 0; i < retryDelays.length; i++) {
+                if (retryDelays[i]) {
+                    await new Promise(resolve => setTimeout(resolve, retryDelays[i]));
                 }
-                return null;
-            } catch (e) {
-                console.error("初始化会话失败:", e);
-                return null;
+                try {
+                    const res = await fetch(`${API_BASE}/api/session/init`, requestInit);
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    const data = await res.json();
+                    if (data.code === 0 && data.data && data.data.sessionId) {
+                        localStorage.setItem("sessionId", data.data.sessionId);
+                        localStorage.removeItem("sessionInitFailed");
+                        return data.data.sessionId;
+                    }
+                    throw new Error(data.message || '会话初始化失败');
+                } catch (e) {
+                    console.error(`初始化会话失败（第 ${i + 1} 次）:`, e);
+                }
             }
+
+            // 服务端不可用：本地兜底，保证事件仍能上报
+            let fallbackId = localStorage.getItem("sessionId");
+            if (!fallbackId) {
+                fallbackId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+                    ? crypto.randomUUID()
+                    : 'local-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+                localStorage.setItem("sessionId", fallbackId);
+            }
+            localStorage.setItem("sessionInitFailed", "1");
+            return fallbackId;
         }
         
         // 埋点上报
@@ -2482,22 +2515,51 @@
         }
         
         // AI 对话
+        // 负责：超时中断、HTTP 状态检查、安全 JSON 解析、中文友好报错
         async function chatWithAI(userInput, messagesForRequest) {
             const sessionId = localStorage.getItem("sessionId");
-            const res = await fetch(`${API_BASE}/api/chat`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 
-                    sessionId, 
-                    userInput,
-                    messages: messagesForRequest
-                })
-            });
-            const data = await res.json();
-            if (data.code !== 0) {
-                throw new Error(data.message || 'AI 对话失败');
+            if (!sessionId) {
+                throw new Error('会话尚未初始化，请刷新页面后重试');
             }
-            return data.data.content;
+
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 45000);
+
+            try {
+                const res = await fetch(`${API_BASE}/api/chat`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        sessionId,
+                        userInput,
+                        messages: messagesForRequest
+                    }),
+                    signal: controller.signal
+                });
+
+                const raw = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(raw);
+                } catch (e) {
+                    throw new Error('服务返回异常，请刷新页面后重试');
+                }
+
+                if (!res.ok || data.code !== 0) {
+                    throw new Error(data.message || 'AI 暂时无法回复，请稍后重试');
+                }
+                return data.data.content;
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    throw new Error('AI 响应超时，请检查网络后重试');
+                }
+                if (error instanceof TypeError) {
+                    throw new Error('网络连接失败，请检查网络后重试');
+                }
+                throw error;
+            } finally {
+                clearTimeout(timer);
+            }
         }
         
         // 复制到剪贴板
@@ -2603,29 +2665,42 @@
         
         // 清空所有历史
         function clearAllHistory() {
-            if (!confirm('确定要清空所有历史对话吗？此操作不可恢复。')) {
+            if (!confirm('确定要清空所有历史对话吗？（不会删除你的理想画像）')) {
                 return;
             }
-            
+
             // 清空历史埋点
             trackEvent('clear_history');
-            
-            // 清空 localStorage 中的对话数据
+
+            // 清空 localStorage 中的对话与反馈数据（保留画像和 sessionId）
             localStorage.removeItem('allConversations');
             localStorage.removeItem('currentConversation');
             localStorage.removeItem('patterns');
             localStorage.removeItem('patternReflections');
             localStorage.removeItem('detectedPatterns');
-            
+            localStorage.removeItem('currentConversationDraft');
+            localStorage.removeItem('userFeedbacks');
+            localStorage.removeItem('retentionFeedbacks');
+            localStorage.removeItem('retentionFeedbackShown');
+
             // 重置全局变量
             allConversations = [];
             currentConversation = [];
             patterns = {};
-            
-            // 重新渲染对话列表
-            renderConversationList();
-            
-            // 提示用户
+            currentConversationId = null;
+            currentMood = null;
+            isViewingHistory = false;
+            conversationHistory = [{ role: 'system', content: generateSystemPrompt() }];
+
+            // 清空对话界面，避免旧气泡残留
+            const chatEl = document.getElementById('chatContainer');
+            if (chatEl) chatEl.innerHTML = '';
+            clearDraftConversation();
+            updateCloseDiaryButton();
+
+            // 重新渲染对话列表（原来的 renderConversationList 并不存在）
+            loadDiaryList();
+
             alert('历史记录已清空');
         }
 
@@ -2756,7 +2831,7 @@
 你是我，只是更完整的那个版本——来自五年后的${futureYear}年。${currentSelfDesc}
 你不是没有弱点的我，而是那个弥补了短板、更好地发挥了长板的我。你内在依然敏感细腻，但外在已经变得情绪稳定、平静。
 
-对你而言，现在（2026年）的这些挣扎都已经走过了。但当我们对话时，你回到此刻陪我——所以你知道"今天"是${todayStr}，也记得未来的你是什么样子。
+对你而言，现在（${now.getFullYear()}年）的这些挣扎都已经走过了。但当我们对话时，你回到此刻陪我——所以你知道"今天"是${todayStr}，也记得未来的你是什么样子。
 （现实时间锚点：今天是 ${todayStr}。我说"今天""昨晚""最近"时，请以这个日期为准来理解；我若问今天几号，就照实回答，不要说不确定。）`;
 
             // 动态部分1：理想状态描述
@@ -3026,10 +3101,53 @@ ${lines}
             'bear': '🐻'
         };
 
+        // 重置引导流程到第 1 步（仅首次设置使用；编辑模式不能重置，否则会清空预填值）
+        function resetOnboardingState() {
+            onboardingData = {
+                animal: null,
+                animalName: null,
+                animalEmoji: null,
+                trait: null,
+                scene: null,
+                actions: [],
+                painPoint1: '',
+                painPoint2: '',
+                gender: null,
+                ageRange: null,
+                status: null,
+                nickname: ''
+            };
+            profileInfoSelections = { gender: null, ageRange: null, status: null };
+
+            ['nicknameInput', 'sceneInput', 'painPoint1Input', 'painPoint2Input'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+
+            document.querySelectorAll(
+                '.animal-option.selected, .action-option.selected, .profile-info-option.selected'
+            ).forEach(el => el.classList.remove('selected'));
+
+            ['step2Next', 'step3Next', 'step4Next', 'step5Next'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) btn.disabled = true;
+            });
+
+            document.querySelectorAll('.onboarding-step').forEach(step => step.classList.remove('active'));
+            const step1 = document.getElementById('step1');
+            if (step1) step1.classList.add('active');
+        }
+
         // 引导流程函数
         function showOnboarding() {
             // 打开设置埋点
             trackEvent('open_settings');
+
+            // 首次设置时回到第 1 步；编辑模式保留 editProfile() 预填好的值
+            if (!onboardingData.isEditing) {
+                resetOnboardingState();
+            }
+
             document.getElementById('onboardingOverlay').style.display = 'flex';
         }
 
@@ -3100,14 +3218,14 @@ ${lines}
             document.getElementById('step' + stepNumber).classList.add('active');
         }
 
-        function selectAnimal(animalId, name, trait) {
+        function selectAnimal(element, animalId, name, trait) {
             // 移除所有选中状态
             document.querySelectorAll('.animal-option').forEach(option => {
                 option.classList.remove('selected');
             });
 
-            // 添加选中状态
-            event.currentTarget.classList.add('selected');
+            // 添加选中状态（显式传入元素，兼容 Firefox，不依赖全局 event）
+            if (element) element.classList.add('selected');
 
             // 保存选择
             onboardingData.animal = animalId;
@@ -3493,9 +3611,9 @@ ${lines}
                 feedbackText: text
             });
 
-            const feedbacks = JSON.parse(localStorage.getItem('retentionFeedbacks') || '[]');
+            const feedbacks = readJSON('retentionFeedbacks', []);
             feedbacks.push({ option: _selectedRetentionOption, text, timestamp: new Date().toISOString() });
-            localStorage.setItem('retentionFeedbacks', JSON.stringify(feedbacks));
+            writeJSON('retentionFeedbacks', feedbacks);
             localStorage.setItem('retentionFeedbackShown', 'true');
             document.getElementById('retentionFeedbackOverlay').style.display = 'none';
             if (_retentionOnDone) _retentionOnDone();
@@ -3529,9 +3647,9 @@ ${lines}
                 feedbackContent: text
             });
             
-            const feedbacks = JSON.parse(localStorage.getItem('userFeedbacks') || '[]');
+            const feedbacks = readJSON('userFeedbacks', []);
             feedbacks.push({ text, timestamp: new Date().toISOString() });
-            localStorage.setItem('userFeedbacks', JSON.stringify(feedbacks));
+            writeJSON('userFeedbacks', feedbacks);
             textarea.value = '';
             const btn = document.querySelector('.feedback-submit-btn');
             const original = btn.textContent;
@@ -3775,7 +3893,7 @@ ${lines}
             }
 
             // 显示负面模式列表
-            const detectedPatterns = JSON.parse(localStorage.getItem('detectedPatterns') || '[]');
+            const detectedPatterns = readJSON('detectedPatterns', []);
 
             const validPatterns = detectedPatterns.filter(p =>
                 p.name && p.name !== '未识别' && p.name !== '无明显模式'
@@ -3909,13 +4027,12 @@ ${lines}
 
         // 获取个人资料
         function getProfile() {
-            const profileData = localStorage.getItem('idealSelfProfile');
-            return profileData ? JSON.parse(profileData) : null;
+            return readJSON('idealSelfProfile', null);
         }
 
         // 保存个人资料
         function saveProfile(profile) {
-            localStorage.setItem('idealSelfProfile', JSON.stringify(profile));
+            writeJSON('idealSelfProfile', profile);
         }
 
         // 模式配置（仅用于展示和分析参考）
@@ -3939,7 +4056,7 @@ ${lines}
                 return;
             }
 
-            const patterns = JSON.parse(localStorage.getItem('detectedPatterns') || '[]');
+            const patterns = readJSON('detectedPatterns', []);
 
             // 去重：如果这个对话已经保存过模式，先移除旧记录再重新保存
             const deduped = conversationTimestamp
@@ -4528,7 +4645,7 @@ ${userMessages}
 
                 // 若这条模式已坐实（≥3 次），顺手刷新它的「共同点」反映并缓存。
                 // 这样打开模式卡片永远 0 等待，也只在真的又多一次时才花这点 token。
-                const cntNow = JSON.parse(localStorage.getItem('detectedPatterns') || '[]')
+                const cntNow = readJSON('detectedPatterns', [])
                     .filter(p => p.name === detectedPattern.name).length;
                 patternCount = cntNow;
                 if (cntNow >= 3) {
@@ -4543,12 +4660,6 @@ ${userMessages}
                 highlights: detectedPattern ? (detectedPattern.highlights || []) : [],
                 patternCount: patternCount  // 这个模式累计出现的次数（≥2 才在模式地图显示）
             };
-        }
-
-        // 结束当前对话并保存（已废弃，被 closeDiary 替代）
-        async function endConversation() {
-            // 重定向到 closeDiary
-            await closeDiary();
         }
 
         // 查看对话详情
@@ -4675,37 +4786,6 @@ ${userMessages}
         }
 
         // 打开"理想的自己"完整画像弹窗
-        function openIdealDetail() {
-            const profile = getProfile();
-            if (!profile) return;
-
-            const overlay = document.createElement('div');
-            overlay.className = 'ideal-detail-overlay';
-            overlay.onclick = (e) => {
-                if (e.target === overlay) {
-                    overlay.remove();
-                }
-            };
-
-            overlay.innerHTML = `
-                <div class="ideal-detail-container" onclick="event.stopPropagation()">
-                    <button class="ideal-detail-close" onclick="this.closest('.ideal-detail-overlay').remove()">×</button>
-                    <div class="ideal-detail-emoji">${profile.animal}</div>
-                    <div class="ideal-detail-trait">像${profile.animalName}一样${profile.trait}</div>
-                    <div class="ideal-detail-section">
-                        <div class="ideal-detail-label">理想场景</div>
-                        <div class="ideal-detail-value">${escapeHtml(profile.scene)}</div>
-                    </div>
-                    <div class="ideal-detail-section">
-                        <div class="ideal-detail-label">行动方向</div>
-                        <div class="ideal-detail-value">${profile.actions.map(a => escapeHtml(a)).join('<br>')}</div>
-                    </div>
-                </div>
-            `;
-
-            document.body.appendChild(overlay);
-        }
-
         // 打开正向亮点详情弹窗
         function openHighlightDetail(highlightType) {
             // 收集这个类型的所有亮点
@@ -4849,7 +4929,7 @@ ${userMessages}
 
         // 打开模式详情弹窗
         function openPatternDetail(patternName) {
-            const detectedPatterns = JSON.parse(localStorage.getItem('detectedPatterns') || '[]');
+            const detectedPatterns = readJSON('detectedPatterns', []);
 
             // 该模式的所有记录，按时间升序（早 → 近）
             const patternRecords = detectedPatterns
@@ -4993,14 +5073,14 @@ ${userMessages}
 
         // 读缓存：只有「基于当前次数生成的」才算有效，次数变了（又多了一次）就要重算
         function getCachedReflection(patternName, count) {
-            const all = JSON.parse(localStorage.getItem('patternReflections') || '{}');
+            const all = readJSON('patternReflections', {});
             const r = all[patternName];
             return (r && r.count === count && r.text) ? r.text : null;
         }
 
         // 调 AI 生成这条模式的「共同点 + 追问」一句话，并按当前次数缓存到本地
         async function generateAndCacheReflection(patternName) {
-            const detectedPatterns = JSON.parse(localStorage.getItem('detectedPatterns') || '[]');
+            const detectedPatterns = readJSON('detectedPatterns', []);
             const records = detectedPatterns.filter(p => p.name === patternName);
             if (records.length < 3) return; // 只为坐实的模式生成
 
@@ -5032,7 +5112,7 @@ ${quotes.join('\n')}
                 text = text.replace(/^["「『]+|["」』]+$/g, '').replace(/\s+/g, ' ').trim();
                 if (!text) return;
 
-                const all = JSON.parse(localStorage.getItem('patternReflections') || '{}');
+                const all = readJSON('patternReflections', {});
                 all[patternName] = { text, count: records.length, timestamp: new Date().toISOString() };
                 localStorage.setItem('patternReflections', JSON.stringify(all));
             } catch (e) {
@@ -5048,7 +5128,7 @@ ${quotes.join('\n')}
         // 清理历史脏数据：把重复保存的模式记录去重，使模式次数与实际对话数一致。
         // 兼容旧数据（没有 conversationTimestamp 的记录），用"模式名+日期"做兜底去重。
         function cleanupDetectedPatterns() {
-            const patterns = JSON.parse(localStorage.getItem('detectedPatterns') || '[]');
+            const patterns = readJSON('detectedPatterns', []);
             if (patterns.length === 0) return;
 
             const seen = new Set();
@@ -5099,16 +5179,9 @@ ${quotes.join('\n')}
             // 清理历史脏数据（模式记录去重）
             cleanupDetectedPatterns();
 
-            // 加载数据
-            const savedConversations = localStorage.getItem('allConversations');
-            if (savedConversations) {
-                allConversations = JSON.parse(savedConversations);
-            }
-
-            const savedPatterns = localStorage.getItem('patterns');
-            if (savedPatterns) {
-                patterns = JSON.parse(savedPatterns);
-            }
+            // 加载数据（损坏时兜底为空，避免整页白屏）
+            allConversations = readJSON('allConversations', []);
+            patterns = readJSON('patterns', {});
 
             // 检查是否第一次使用
             const profile = getProfile();
@@ -5197,32 +5270,6 @@ ${quotes.join('\n')}
             }
         }
 
-        function addMessage(text, isUser) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message';
-
-            const textDiv = document.createElement('div');
-            textDiv.className = `message-text ${isUser ? 'user-text' : 'ai-text'}`;
-            textDiv.textContent = text;
-
-            messageDiv.appendChild(textDiv);
-            chatContainer.appendChild(messageDiv);
-            scrollChatToBottom();
-
-            // 保存到当前对话
-            currentConversation.push({
-                text: text,
-                isUser: isUser,
-                timestamp: new Date().toISOString()
-            });
-
-            // 自动保存
-            autoSaveCurrentConversation();
-
-            // 更新合上笔记本按钮的显示状态
-            updateCloseDiaryButton();
-        }
-
         function addTypingMessage(text, isUser, callback) {
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message';
@@ -5280,6 +5327,9 @@ ${quotes.join('\n')}
 
             // 更新合上笔记本按钮的显示状态
             updateCloseDiaryButton();
+
+            // 返回 DOM 节点，发送失败时用于回滚
+            return messageDiv;
         }
 
         function showLoading() {
@@ -5373,14 +5423,26 @@ ${quotes.join('\n')}
             // 网络请求在后台先发起，不浪费用户消息的打字时间。
             // 但"思考中"和 AI 回复的【显示】要等用户消息完整显示后才开始，
             // 避免"用户的话还没打完，下面就开始回复"的错乱观感。
-            const fetchPromise = chatWithAI(message, messagesForRequest);
+            // 先把结果包成永不 reject 的对象：请求可能在打字动画期间就失败，
+            // 如果直接暴露 rejected promise，会触发浏览器的 unhandledrejection。
+            const fetchPromise = chatWithAI(message, messagesForRequest).then(
+                content => ({ ok: true, content }),
+                error => ({ ok: false, error })
+            );
 
             // 用户消息开始逐字显示；完成后才进入"思考中 → AI 回复"环节
-            addTypingMessage(message, true, async () => {
+            // 记录这次发送的用户消息，失败时用于回滚（否则下次发送会重复累积）
+            let userMsgEl = null;
+            let userMsgObj = null;
+            let userHistoryEntry = null;
+
+            userMsgEl = addTypingMessage(message, true, async () => {
                 showLoading();
 
                 try {
-                    const aiMessage = await fetchPromise;
+                    const result = await fetchPromise;
+                    if (!result.ok) throw result.error;
+                    const aiMessage = result.content;
 
                     removeLoading();
 
@@ -5393,6 +5455,23 @@ ${quotes.join('\n')}
                 } catch (error) {
                     console.error('Error:', error);
                     removeLoading();
+
+                    // 回滚失败的用户消息：DOM、界面数组、API 历史三处都要清
+                    if (userMsgEl && userMsgEl.parentNode) userMsgEl.remove();
+                    const uiIndex = currentConversation.indexOf(userMsgObj);
+                    if (uiIndex >= 0) currentConversation.splice(uiIndex, 1);
+                    const historyIndex = conversationHistory.indexOf(userHistoryEntry);
+                    if (historyIndex >= 0) conversationHistory.splice(historyIndex, 1);
+                    if (currentConversation.length === 0) {
+                        clearDraftConversation();
+                    } else {
+                        autoSaveCurrentConversation();
+                    }
+                    updateCloseDiaryButton();
+
+                    // 把用户刚输入的内容放回输入框，方便重试
+                    if (!userInput.value) userInput.value = message;
+
                     showError(error.message || '发送失败，请稍后重试');
                     // 网络错误埋点
                     trackEvent('network_error', { error: error.message, function: 'sendMessage' });
@@ -5402,6 +5481,11 @@ ${quotes.join('\n')}
                     userInput.focus();
                 }
             });
+
+            // addTypingMessage 会同步把消息 push 到 currentConversation；
+            // conversationHistory 的用户消息在发送前已 push。
+            userMsgObj = currentConversation[currentConversation.length - 1];
+            userHistoryEntry = conversationHistory[conversationHistory.length - 1];
         }
     </script>
 </body>

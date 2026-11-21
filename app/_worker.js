@@ -214,6 +214,31 @@ export default {
         return successResponse(null, '服务运行正常');
       }
 
+      // 本地模拟模式：只有显式设置 MOCK_MODE=1 时才生效。
+      // 生产环境绝对不要配置 MOCK_MODE，否则会返回假数据。
+      if (env.MOCK_MODE === '1') {
+        if (request.method === 'POST' && path === '/api/session/init') {
+          return successResponse({ sessionId: generateUUID() }, 'mock 会话初始化成功');
+        }
+        if (request.method === 'POST' && path === '/api/event') {
+          const body = await request.json().catch(() => ({}));
+          console.log('[mock event]', body.eventType, JSON.stringify(body.eventData || {}));
+          return successResponse(null, 'mock 上报成功');
+        }
+        if (request.method === 'POST' && path === '/api/chat') {
+          if (env.MOCK_CHAT_MODE === 'error') {
+            return errorResponse('模拟 AI 故障', -1, 500);
+          }
+          if (env.MOCK_CHAT_MODE === 'slow') {
+            await new Promise(resolve => setTimeout(resolve, 60000));
+          }
+          return successResponse(
+            { content: '（本地模拟）我听见了。今天想聊点什么？' },
+            'mock 对话成功'
+          );
+        }
+      }
+
       // 路由分发
       if (request.method === 'POST') {
         if (path === '/api/session/init') {

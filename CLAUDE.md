@@ -78,13 +78,24 @@ npm run deploy     # 手动部署到 Cloudflare Pages
 4. Supabase 查最近 15 分钟 events，事件名和参数正确；
 5. 隐私 marker：聊天发一个唯一字符串，确认 `feedbacks` 无新增、`events` 无该字符串。
 
-## 9. 当前已知缺口 / 技术债
+## 9. 当前状态 / 已知缺口
 
-- 历史 `feedbacks` 表仍含聊天原文（2026-11-21 决定保留，不再新增）；
-- `sessions.source` 字段尚未建立，本轮继续用 `channel`；
+**已完成（2026-11-21）：**
+
+- 隐私 P0：后端不再写 `feedbacks`，聊天原文不落库；
+- 19 个埋点落地，旧 13 个事件全部移除；
+- 主要 bug：清空历史按钮消失、聊天失败残留、`Failed to fetch` 暴露、引导不重置、Firefox 选动物、localStorage 白屏；
+- 错误提示一键重试；移动端 320/375/390 无横向溢出；
+- Git（GitHub 私有 + Gitee）+ GitHub Actions 自动部署 + 本地 Mock 模式。
+
+**仍待处理：**
+
+- 历史 `feedbacks` 表仍含聊天原文（按决定保留，不再新增）；
+- `sessions.source` 字段尚未建立，当前统一用 `channel`；
 - 单文件 `index.html` 约 5400 行，难测试、难合并；是否拆分见 `docs/adr/0001-single-file-zero-build.md`；
 - 数据复盘挂起，见 README「数据复盘」；
-- 现有 Pages 项目是 Direct Upload，不能后接 Git integration，部署走 GitHub Actions。
+- 现有 Pages 项目是 Direct Upload，不能后接 Git integration，部署走 GitHub Actions；
+- CORS 仍为 `*`（同源部署下不构成实际风险，后续可收窄）。
 
 ## 10. 工作约定
 

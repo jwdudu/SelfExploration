@@ -76,18 +76,10 @@ function getUserAgent(request) {
 // 调用 DeepSeek AI
 async function callDeepSeek(env, messages) {
   const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
-  
-  const systemPrompt = `你是"理想的自己"——一个温暖、接纳、不批判的成长陪伴助手。
-你的角色是用户理想中的自己，温柔而有力量。
-请用温暖、共情、支持的语气回应用户，像一个知心朋友。
-不要说教，不要评判，而是倾听、理解、陪伴。
-每次回复不要太长，保持自然的对话节奏。
-可以适当使用emoji增加亲切感。`;
 
-  const requestMessages = [
-    { role: 'system', content: systemPrompt },
-    ...messages
-  ];
+  // 人设由前端 generateSystemPrompt() 动态生成，这里不再额外前置固定 system prompt，
+  // 避免一次请求出现两条 system 消息、稀释用户画像。
+  const requestMessages = messages;
 
   const res = await fetch(apiUrl, {
     method: 'POST',
@@ -169,25 +161,20 @@ async function handleEvent(request, env) {
 // AI 对话
 async function handleChat(request, env) {
   try {
-    const { sessionId, userInput, messages = [] } = await request.json();
+    const { sessionId, messages = [] } = await request.json();
 
-    if (!sessionId || !userInput) {
-      return errorResponse('缺少必要参数: sessionId 或 userInput');
+    if (!sessionId) {
+      return errorResponse('缺少必要参数: sessionId');
+    }
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return errorResponse('缺少对话内容');
     }
 
     // 调用 AI
     const aiResponse = await callDeepSeek(env, messages);
 
-    // 写入 feedbacks 表（失败不影响返回）
-    try {
-      await supabaseQuery(env, 'feedbacks', 'POST', {
-        session_id: sessionId,
-        user_input: userInput,
-        ai_output: aiResponse,
-      });
-    } catch (dbError) {
-      console.error('Write feedback failed:', dbError);
-    }
+    // 隐私红线：聊天原文绝不写入任何服务端存储。
+    // userInput / messages 只用于本次 AI 请求，不落库、不写日志。
 
     return successResponse({ content: aiResponse }, '对话成功');
   } catch (error) {

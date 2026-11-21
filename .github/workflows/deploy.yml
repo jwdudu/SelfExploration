@@ -1,0 +1,39 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify deployable files exist
+        run: |
+          test -f app/index.html
+          test -f app/_worker.js
+
+      - name: Guard against frontend secrets
+        run: |
+          if grep -qE "SUPABASE_SERVICE_KEY|service_role|sk-[A-Za-z0-9]{20,}" app/index.html; then
+            echo "::error::app/index.html 疑似包含密钥，已中止部署"
+            exit 1
+          fi
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy app --project-name=ideal-self-chat --branch=main

@@ -1,0 +1,14 @@
+# 复制本文件为 .dev.vars，再填入真实值。
+# .dev.vars 已被 .gitignore 忽略，绝不能提交到仓库。
+#
+# Supabase 项目：bzwhzhvcwbaklpxneqli
+SUPABASE_URL="https://your-project.supabase.co"
+SUPABASE_SERVICE_KEY="your-service-role-key"
+AI_API_KEY="your-deepseek-key"
+
+# 本地模拟模式：
+#   1 = 开启（不连数据库、不调 AI，用于纯前端联调）
+#   0 或未设置 = 关闭（使用上面的真实密钥）
+# 生产环境绝对不要设置 MOCK_MODE。
+MOCK_MODE="1"
+MOCK_CHAT_MODE="ok"

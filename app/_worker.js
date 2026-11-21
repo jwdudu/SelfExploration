@@ -116,8 +116,10 @@ function handleOptions() {
 // 初始化会话
 async function handleSessionInit(request, env) {
   try {
-    const { channel = 'default' } = await request.json();
-    
+    const body = await request.json().catch(() => ({}));
+    // 来源渠道做长度限制，避免异常输入
+    const channel = String(body.channel || 'default').slice(0, 64) || 'default';
+
     const sessionId = generateUUID();
     const userAgent = getUserAgent(request);
     const ipAddress = getClientIP(request);
@@ -132,17 +134,42 @@ async function handleSessionInit(request, env) {
     return successResponse({ sessionId }, '会话初始化成功');
   } catch (error) {
     console.error('Session init error:', error);
-    return errorResponse('会话初始化失败: ' + error.message);
+    return errorResponse('会话初始化失败，请稍后重试');
   }
 }
 
 // 事件上报
 async function handleEvent(request, env) {
   try {
-    const { sessionId, eventType, eventData = {} } = await request.json();
+    const body = await request.json().catch(() => null);
+    if (!body) return errorResponse('请求体不是有效的 JSON');
+
+    const { sessionId, eventType } = body;
+    let { eventData = {} } = body;
 
     if (!sessionId || !eventType) {
       return errorResponse('缺少必要参数: sessionId 或 eventType');
+    }
+    if (typeof eventType !== 'string' || eventType.length > 64) {
+      return errorResponse('eventType 不合法');
+    }
+    if (eventData === null) eventData = {};
+    if (typeof eventData !== 'object' || Array.isArray(eventData)) {
+      return errorResponse('eventData 必须是对象');
+    }
+
+    // 防止未来误加字段把聊天原文/画像隐私传上来。
+    // 用户主动提交的 feedbackContent / feedbackText 是授权数据，放行。
+    const FORBIDDEN_KEYS = ['message', 'text', 'userInput', 'aiOutput', 'nickname'];
+    for (const key of Object.keys(eventData)) {
+      if (FORBIDDEN_KEYS.includes(key)) {
+        return errorResponse('事件参数包含不允许的字段');
+      }
+    }
+
+    const eventJson = JSON.stringify(eventData);
+    if (eventJson.length > 2048) {
+      return errorResponse('eventData 过大');
     }
 
     await supabaseQuery(env, 'events', 'POST', {
@@ -154,20 +181,33 @@ async function handleEvent(request, env) {
     return successResponse(null, '上报成功');
   } catch (error) {
     console.error('Event track error:', error);
-    return errorResponse('上报失败: ' + error.message);
+    return errorResponse('上报失败，请稍后重试');
   }
 }
 
 // AI 对话
 async function handleChat(request, env) {
   try {
-    const { sessionId, messages = [] } = await request.json();
+    const body = await request.json().catch(() => null);
+    if (!body) return errorResponse('请求体不是有效的 JSON');
+
+    const { sessionId, messages = [] } = body;
 
     if (!sessionId) {
       return errorResponse('缺少必要参数: sessionId');
     }
     if (!Array.isArray(messages) || messages.length === 0) {
       return errorResponse('缺少对话内容');
+    }
+    if (messages.length > 80) {
+      return errorResponse('对话过长，请开始新对话');
+    }
+    const totalChars = messages.reduce(
+      (sum, m) => sum + (m && typeof m.content === 'string' ? m.content.length : 0),
+      0
+    );
+    if (totalChars > 60000) {
+      return errorResponse('对话过长，请开始新对话');
     }
 
     // 调用 AI
@@ -179,7 +219,7 @@ async function handleChat(request, env) {
     return successResponse({ content: aiResponse }, '对话成功');
   } catch (error) {
     console.error('Chat error:', error);
-    return errorResponse('对话失败: ' + error.message, -1, 500);
+    return errorResponse('对话失败，请稍后重试', -1, 500);
   }
 }
 

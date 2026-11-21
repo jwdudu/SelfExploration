@@ -46,11 +46,23 @@ docs/adr/                 架构决策记录
 
 ## 本地开发
 
+> **线上版不需要启动任何东西**：前端页面和后端 `_worker.js` 都部署在 Cloudflare Pages 上，打开 <https://ideal-self-chat.pages.dev> 就能用。只有"本地开发/改代码"才需要下面的命令。
+
 ```bash
 npm install
-npm run dev          # http://127.0.0.1:8788
+npm run dev          # 本地启动，前端 + 后端在同一个进程里
 curl http://127.0.0.1:8788/api
 ```
+
+`npm run dev` 会运行 `scripts/launch.mjs`，它启动一个 `wrangler pages dev` 进程：
+
+- 前端页面：`http://127.0.0.1:8788`
+- 后端接口：`http://127.0.0.1:8788/api/*`
+
+**不需要分别启动前后端**。本地和线上的结构是一样的：`index.html` 和 `_worker.js` 由同一个部署/进程提供。
+
+- 默认按 `.dev.vars` 的 `MOCK_MODE` 决定模式；没有 `.dev.vars` 时会自动从示例创建一个 Mock 配置。
+- `npm run dev:real` 用于真实密钥模式，需要把 `.dev.vars` 里的 `MOCK_MODE` 改成 `"0"` 并填入真实密钥。
 
 ### 为什么直接双击 index.html 会报 `Failed to fetch`？
 
@@ -132,7 +144,8 @@ git push origin main && git push gitee main
 | `/api` 返回 HTML | 部署目录写错，`_worker.js` 不在根部 | 确认部署的是 `app/` |
 | 埋点没数据 | `sessionId` 为空 / 环境变量缺失 | 看 `/api/session/init` 返回，查 localStorage |
 | 改了代码线上没变 | 没部署，或部署成了 Preview | 看 Actions 结果和 Dashboard 部署标记 |
-| AI 一直转圈 | DeepSeek 额度/限流 | 查 Cloudflare 日志和 DeepSeek 余额 |
+| 线上发消息提示「对话失败，请稍后重试」 | Cloudflare worker 调 DeepSeek 失败，常见是 402 余额不足 / 401 key 无效 / 429 限流 | 到 DeepSeek 开放平台看余额与 key；充值或换 key 后更新 Cloudflare 的 `AI_API_KEY` 并重新部署 |
+| 本地 `npm run dev` 能开页面但聊天失败 | `.dev.vars` 还是 Mock 或密钥无效 | 用 `npm run dev:real`，并确认 `.dev.vars` 的 `MOCK_MODE="0"` 和密钥 |
 
 ## 数据复盘（Backlog）
 

@@ -22,9 +22,12 @@ docs/adr/            架构决策
 
 ```bash
 npm install
-npm run dev        # wrangler pages dev app --port 8788
+npm run dev        # 本地启动：前端 + 后端同一个 wrangler 进程（默认 Mock）
+npm run dev:real   # 真实密钥模式（需要 .dev.vars 里 MOCK_MODE=0）
 npm run deploy     # 手动部署到 Cloudflare Pages
 ```
+
+线上版不需要本地启动任何东西；前端 + 后端都在 Cloudflare Pages 上。`npm run dev` 只是本地开发用。
 
 ## 4. 技术栈
 

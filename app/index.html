@@ -3419,6 +3419,18 @@ ${lines}
                 content: generateSystemPrompt()
             }];
 
+            // switchPage('chatPage') 可能已经创建了一条开场白（currentConversation 非空）。
+            // 这里复用它，避免首次引导完成后出现两条「今天感觉怎么样？」。
+            if (currentConversation.length > 0) {
+                currentConversation.forEach(msg => {
+                    conversationHistory.push({
+                        role: msg.isUser ? "user" : "assistant",
+                        content: msg.text
+                    });
+                });
+                return;
+            }
+
             // 添加 AI 的第一句话
             const openingLine = '今天感觉怎么样？';
             addTypingMessage(openingLine, false);

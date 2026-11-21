@@ -4,7 +4,8 @@
   "version": "3.0.0",
   "description": "理想的自己 - AI 陪伴式自我对话产品",
   "scripts": {
-    "dev": "wrangler pages dev app --port 8788",
+    "dev": "node scripts/launch.mjs",
+    "dev:real": "node scripts/launch.mjs real",
     "deploy": "wrangler pages deploy app --project-name ideal-self-chat-test1 --branch=main"
   },
   "devDependencies": {

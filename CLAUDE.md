@@ -102,4 +102,5 @@ npm run deploy     # 手动部署到 Cloudflare Pages
 - 改代码前先按函数名搜索，确认调用关系；单文件很大，盲改必错；
 - 交付物是可直接部署的 `app/` 文件夹，不是代码片段；
 - 中文文案：第二人称、短句、不评判、不说教；
-- 提交用中文，按功能分次；不要提交 `.dev.vars`、密钥、备份文件。
+- 提交用中文，按功能分次；不要提交 `.dev.vars`、密钥、备份文件；
+- 可用技能：`/git-save`（提交并推送 GitHub + Gitee）、`/security-audit`、`/comments-check`。

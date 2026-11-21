@@ -1,0 +1,5396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>理想的自己 v3</title>
+    <style>
+        @import url('https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.1.0/style.css');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 全局默认：霞鹜文楷（全部用） */
+        body {
+            font-family: "LXGW WenKai", serif;
+            /* 纸张质感背景：颜色单独写确保生效 */
+            background-color: #F5F1E8;
+            background-image: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(139, 111, 71, 0.03) 2px,
+                rgba(139, 111, 71, 0.03) 4px
+            );
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 移除之前的字体分层设置，全部用霞鹜文楷 */
+
+        /* 页面容器 */
+        .page {
+            display: none;
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            padding-bottom: 80px; /* 为导航栏留空间 */
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* 导航栏 */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #FFFFFF;
+            border-top: 1px solid #E8E8E8;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            background: none;
+            color: #999999;
+        }
+
+        .nav-item:hover {
+            color: #1873CC;
+        }
+
+        .nav-item.active {
+            color: #1873CC;
+        }
+
+        .nav-icon {
+            font-size: 24px;
+        }
+
+        .nav-label {
+            font-size: 12px;
+        }
+
+        /* 对话页样式 */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding-top: 60px; /* 为顶部按钮留空间 */
+            padding-bottom: 200px; /* 为底部固定区域留出空间 */
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .chat-container {
+                padding-top: 20px; /* 移动端减少顶部空间 */
+                padding-bottom: 180px;
+            }
+
+            .close-diary-button {
+                top: 10px;
+                right: 10px;
+                font-size: 13px;
+                padding: 8px 16px;
+            }
+
+            .input-container {
+                padding-bottom: env(safe-area-inset-bottom, 20px); /* 适配iPhone底部安全区 */
+            }
+        }
+
+        /* 合上笔记本按钮 */
+        .close-diary-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 1px solid #E8E8E8;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #A0826D;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 8px rgba(139, 111, 71, 0.1);
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        .close-diary-button:hover {
+            background-color: #FFFFFF;
+            box-shadow: 0 4px 12px rgba(139, 111, 71, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .close-diary-button:active {
+            transform: translateY(0);
+        }
+
+        .message {
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .message-text {
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 16px;
+        }
+
+        .user-text {
+            color: #333333;
+            text-align: left;
+        }
+
+        .ai-text {
+            color: #A0826D;
+            text-align: left;
+        }
+
+        /* 复制按钮样式 */
+        .copy-btn {
+            position: absolute;
+            right: 0;
+            top: 0;
+            background: none;
+            border: none;
+            color: #C0A898;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px 8px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .message:hover .copy-btn {
+            opacity: 1;
+        }
+
+        .copy-btn:hover {
+            color: #A0826D;
+        }
+
+        .copy-btn.copied {
+            color: #6B8E23;
+            opacity: 1;
+        }
+
+        .input-container {
+            position: fixed;
+            bottom: 75px; /* 导航栏实际高度约75px */
+            left: 0;
+            right: 0;
+            border-top: 1px solid #E8E8E8;
+            padding: 16px;
+            background-color: #FFFFFF;
+            max-width: 800px;
+            margin: 0 auto;
+            z-index: 10;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+        }
+
+        #userInput {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #E8E8E8;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: none;
+            min-height: 44px;
+            max-height: 120px;
+        }
+
+        #userInput:focus {
+            outline: none;
+            border-color: #D4A574;
+            box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.1);
+        }
+
+        #sendButton {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #D4A574 0%, #C4956A 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(212, 165, 116, 0.3);
+            transition: all 0.3s;
+        }
+
+        #sendButton:hover {
+            background: linear-gradient(135deg, #C4956A 0%, #B48560 100%);
+            box-shadow: 0 4px 12px rgba(212, 165, 116, 0.4);
+            transform: translateY(-1px);
+        }
+
+        #sendButton:disabled {
+            background-color: #CCCCCC;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #999999;
+            font-size: 14px;
+        }
+
+        .loading-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .loading-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #999999;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .loading-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .loading-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        .error-message {
+            color: #FF4444;
+            font-size: 14px;
+            margin-top: 8px;
+            padding: 8px 12px;
+            background-color: #FFF0F0;
+            border-radius: 4px;
+            border-left: 3px solid #FF4444;
+        }
+
+        /* 温和提示条 */
+        .gentle-tip {
+            padding: 12px 16px;
+            background-color: #FFF8F0;
+            color: #A0826D;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            line-height: 1.6;
+            animation: fadeInOut 3s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+            0% {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            10%, 90% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+
+        /* 首页（日记本）样式 */
+        .diary-header {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666666;
+            line-height: 2;
+            font-size: 16px;
+            border-bottom: 1px solid #E8E8E8;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        /* 手绘日记本图标 */
+        .diary-icon {
+            width: 225px;
+            height: 180px;
+            margin: 0 auto 20px;
+            display: block;
+            animation: breathe 4s ease-in-out infinite;
+        }
+
+        /* 日记本呼吸动画 */
+        @keyframes breathe {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.03);
+            }
+        }
+
+        /* 魔法星星 */
+        .magic-star {
+            position: absolute;
+            font-size: 24px;
+            opacity: 0;
+            animation: twinkle 3s ease-in-out infinite;
+            pointer-events: none;
+            color: #D4A574;
+        }
+
+        .magic-star:nth-child(1) {
+            top: 100px;
+            left: 50%;
+            margin-left: -180px;
+            animation-delay: 0s;
+        }
+
+        .magic-star:nth-child(2) {
+            top: 140px;
+            left: 50%;
+            margin-left: 150px;
+            animation-delay: 1.5s;
+        }
+
+        @keyframes twinkle {
+            0%, 100% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(1.2);
+            }
+        }
+
+        /* 羽毛笔 */
+        .feather-pen {
+            position: absolute;
+            top: 16px;
+            left: 50%;
+            margin-left: 20px;
+            font-size: 32px;
+            opacity: 0.4;
+            transform-origin: top center;
+            animation: sway 4s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes sway {
+            0%, 100% {
+                transform: rotate(-5deg);
+            }
+            50% {
+                transform: rotate(5deg);
+            }
+        }
+
+        /* 文字淡入动画 */
+        .diary-header {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666666;
+            line-height: 2;
+            font-size: 16px;
+            border-bottom: 1px solid #E8E8E8;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .text-line {
+            opacity: 0;
+            /* 动画由 JS 在字体加载完后触发，避免字体未就绪时动画已播完 */
+        }
+
+        .text-line.animate {
+            animation: fadeInLine 0.8s ease-in both;
+        }
+
+        /* 文字从上到下依次出现 */
+        .line-1.animate { animation-delay: 0s; }
+        .line-2.animate { animation-delay: 0.8s; }
+        .line-3.animate { animation-delay: 1.6s; }
+        .line-4.animate { animation-delay: 2.4s; }
+        .line-5.animate { animation-delay: 3.2s; }
+
+        @keyframes fadeInLine {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .diary-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .clear-history-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 8px;
+        }
+
+        .clear-history-btn {
+            background: none;
+            border: none;
+            color: #C0A898;
+            font-size: 13px;
+            font-family: inherit;
+            cursor: pointer;
+            padding: 4px 8px;
+            transition: color 0.2s;
+        }
+
+        .clear-history-btn:hover {
+            color: #A0826D;
+        }
+
+        body.dark-theme .clear-history-btn {
+            color: #8B7355;
+        }
+
+        body.dark-theme .clear-history-btn:hover {
+            color: #D4A574;
+        }
+
+        .diary-item {
+            background-color: #FFFFFF;
+            padding: 20px;
+            border-radius: 12px;
+            /* 柔和的纸张叠加阴影 */
+            box-shadow:
+                0 1px 3px rgba(139, 111, 71, 0.12),
+                0 4px 8px rgba(139, 111, 71, 0.08);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .diary-item:hover {
+            box-shadow:
+                0 4px 12px rgba(139, 111, 71, 0.15),
+                0 8px 16px rgba(139, 111, 71, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .diary-date {
+            font-size: 14px;
+            color: #999999;
+            margin-bottom: 8px;
+        }
+
+        .diary-pattern {
+            font-size: 14px;
+            color: #1873CC;
+            margin-bottom: 12px;
+        }
+
+
+        .new-chat-button {
+            position: fixed;
+            bottom: 92px;
+            right: 20px;
+            width: 48px;
+            height: 48px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .new-chat-button svg {
+            width: 48px;
+            height: 48px;
+            fill: #D4A574;
+            filter: drop-shadow(0 2px 8px rgba(212, 165, 116, 0.3));
+            transition: all 0.3s;
+        }
+
+        .new-chat-button:hover svg {
+            fill: #C4956A;
+            filter: drop-shadow(0 4px 12px rgba(212, 165, 116, 0.5));
+            transform: translateY(-2px) scale(1.05);
+        }
+
+        .new-chat-button:active svg {
+            fill: #B48560;
+        }
+
+        /* 模式地图页样式 */
+        .pattern-header {
+            background-color: #FFFFFF;
+            padding: 20px 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow:
+                0 1px 3px rgba(139, 111, 71, 0.12),
+                0 4px 8px rgba(139, 111, 71, 0.08);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pattern-header:hover {
+            box-shadow:
+                0 4px 12px rgba(139, 111, 71, 0.15),
+                0 8px 16px rgba(139, 111, 71, 0.1);
+        }
+
+        .pattern-ideal {
+            font-size: 16px;
+            color: #333333;
+            line-height: 1.6;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .pattern-ideal-main {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pattern-ideal-emoji {
+            font-size: 32px;
+        }
+
+        .pattern-ideal-text {
+            font-size: 16px;
+            color: #333333;
+        }
+
+        .pattern-ideal-arrow {
+            font-size: 16px;
+            color: #D4A574;
+        }
+
+        /* 理想的自己详情弹窗 */
+        .ideal-detail-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+
+        .ideal-detail-container {
+            background: #F5F1E8;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow:
+                0 10px 30px rgba(139, 111, 71, 0.2),
+                0 20px 60px rgba(139, 111, 71, 0.15);
+            position: relative;
+            animation: slideUp 0.3s;
+            text-align: center;
+        }
+
+        .ideal-detail-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: none;
+            font-size: 28px;
+            color: #666666;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .ideal-detail-close:hover {
+            background-color: #FFFFFF;
+            color: #333333;
+        }
+
+        .ideal-detail-emoji {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .ideal-detail-trait {
+            font-size: 20px;
+            color: #333333;
+            font-weight: 500;
+            margin-bottom: 32px;
+        }
+
+        .ideal-detail-section {
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .ideal-detail-label {
+            font-size: 14px;
+            color: #999999;
+            margin-bottom: 8px;
+        }
+
+        .ideal-detail-value {
+            font-size: 16px;
+            color: #333333;
+            line-height: 1.8;
+        }
+
+        .pattern-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .pattern-item {
+            background-color: #FFFFFF;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow:
+                0 1px 3px rgba(139, 111, 71, 0.12),
+                0 4px 8px rgba(139, 111, 71, 0.08);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pattern-item:hover {
+            box-shadow:
+                0 4px 12px rgba(139, 111, 71, 0.15),
+                0 8px 16px rgba(139, 111, 71, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .pattern-name {
+            font-size: 18px;
+            color: #333333;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .pattern-stats {
+            font-size: 14px;
+            color: #999999;
+        }
+
+        /* 正向亮点区域样式 */
+        .highlights-section {
+            background-color: #FFFFFF;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow:
+                0 1px 3px rgba(139, 111, 71, 0.12),
+                0 4px 8px rgba(139, 111, 71, 0.08);
+        }
+
+        .highlights-title {
+            font-size: 16px;
+            color: #A0826D;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .highlight-category-item {
+            padding: 16px;
+            margin-bottom: 12px;
+            background-color: #FFF8F0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .highlight-category-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .highlight-category-item:hover {
+            background-color: #FFF0E0;
+            transform: translateX(4px);
+        }
+
+        .highlight-category-item-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .highlight-category-item-emoji {
+            font-size: 24px;
+        }
+
+        .highlight-category-item-name {
+            font-size: 16px;
+            color: #333333;
+        }
+
+        .highlight-category-item-count {
+            font-size: 14px;
+            color: #999999;
+        }
+
+        .highlight-category-item-arrow {
+            font-size: 18px;
+            color: #D4A574;
+        }
+
+        .highlights-empty {
+            text-align: center;
+            padding: 30px 20px;
+            color: #999999;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        /* 正向亮点详情弹窗 */
+        .highlight-detail-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+
+        .highlight-detail-container {
+            background: #F5F1E8;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow:
+                0 10px 30px rgba(139, 111, 71, 0.2),
+                0 20px 60px rgba(139, 111, 71, 0.15);
+            position: relative;
+            animation: slideUp 0.3s;
+        }
+
+        .highlight-detail-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: none;
+            font-size: 28px;
+            color: #666666;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .highlight-detail-close:hover {
+            background-color: #FFFFFF;
+            color: #333333;
+        }
+
+        .highlight-detail-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .highlight-detail-emoji {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .highlight-detail-title {
+            font-size: 24px;
+            color: #333333;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .highlight-detail-subtitle {
+            font-size: 16px;
+            color: #999999;
+        }
+
+        .highlight-detail-items {
+            margin-bottom: 32px;
+        }
+
+        .highlight-detail-date-group {
+            margin-bottom: 24px;
+        }
+
+        .highlight-detail-date {
+            color: #999999;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .highlight-detail-text {
+            color: #333333;
+            font-size: 15px;
+            line-height: 1.8;
+            margin-bottom: 8px;
+            padding: 10px 14px;
+            background-color: #FFFFFF;
+            border-radius: 8px;
+            border-left: 3px solid #D4A574;
+        }
+
+        /* 新增：整合卡片样式 */
+        .highlight-summary-card {
+            margin-bottom: 16px;
+            background: #FFF9F0;
+            border-left: 3px solid #FFB84D;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .highlight-summary-text {
+            color: #333;
+            font-size: 15px;
+            line-height: 1.8;
+            margin-bottom: 12px;
+        }
+
+        .highlight-sources-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #999;
+            font-size: 13px;
+            cursor: pointer;
+            user-select: none;
+            margin-top: 12px;
+        }
+
+        .highlight-sources-toggle:hover {
+            color: #666;
+        }
+
+        .toggle-icon {
+            font-size: 11px;
+            transition: transform 0.2s;
+        }
+
+        .highlight-sources-list {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed #E5E5E5;
+        }
+
+        .highlight-sources-label {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 8px;
+        }
+
+        .highlight-source-item {
+            padding: 8px 12px;
+            background: #F5F5F5;
+            border-radius: 6px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .highlight-source-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .highlight-detail-footer {
+            margin-top: 32px;
+            color: #A0826D;
+            font-size: 15px;
+            line-height: 1.9;
+            text-align: left;
+            padding-top: 24px;
+            border-top: 1px solid rgba(212, 165, 116, 0.2);
+        }
+        .profile-container {
+            background-color: #FEFDF8;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 14px rgba(180, 150, 60, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-section {
+            margin-bottom: 30px;
+        }
+
+        .profile-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .profile-label {
+            font-size: 14px;
+            color: #999999;
+            margin-bottom: 8px;
+        }
+
+        .profile-value {
+            font-size: 18px;
+            color: #333333;
+            line-height: 1.8;
+        }
+
+        .profile-animal {
+            font-size: 64px;
+            text-align: center;
+            margin: 0 auto 24px;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle at center, rgba(255,220,100,0.2) 0%, rgba(230,185,80,0.07) 50%, rgba(212,165,60,0.02) 70%, transparent 90%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: animal-glow-breathe 3.6s ease-in-out infinite;
+        }
+
+        @keyframes animal-glow-breathe {
+            0%, 100% {
+                box-shadow: 0 0 28px 0px rgba(212, 165, 60, 0.16);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 60px 0px rgba(212, 165, 60, 0.3);
+                transform: scale(1.04);
+            }
+        }
+
+        .edit-button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #D4A574 0%, #C4956A 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 30px;
+            box-shadow: 0 2px 8px rgba(212, 165, 116, 0.35);
+            transition: all 0.3s;
+        }
+
+        .edit-button:hover {
+            background: linear-gradient(135deg, #C4956A 0%, #B48560 100%);
+            box-shadow: 0 4px 12px rgba(212, 165, 116, 0.45);
+            transform: translateY(-1px);
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999999;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .empty-text {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        /* 模式详情弹窗 */
+        .pattern-detail-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .pattern-detail-container {
+            /* 纯色背景 */
+            background: #F5F1E8;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow:
+                0 10px 30px rgba(139, 111, 71, 0.2),
+                0 20px 60px rgba(139, 111, 71, 0.15);
+            position: relative;
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .pattern-detail-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: none;
+            font-size: 28px;
+            color: #666666;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .pattern-detail-close:hover {
+            background-color: #FFFFFF;
+            color: #333333;
+        }
+
+        .pattern-detail-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .pattern-detail-emoji {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .pattern-detail-title {
+            font-size: 24px;
+            color: #333333;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .pattern-detail-subtitle {
+            font-size: 16px;
+            color: #999999;
+        }
+
+        .pattern-detail-section {
+            background-color: #FFFFFF;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .pattern-detail-section-title {
+            font-size: 16px;
+            color: #1873CC;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .pattern-detail-section-content {
+            font-size: 15px;
+            color: #666666;
+            line-height: 1.8;
+        }
+
+        .pattern-detail-keypoint {
+            background-color: #FFF8F0;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 3px solid #FFB6C1;
+        }
+
+        .pattern-detail-keypoint:last-child {
+            margin-bottom: 0;
+        }
+
+        .pattern-detail-advice {
+            background-color: #F0F8FF;
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 3px solid #1873CC;
+        }
+
+        /* 卡片尾巴：苏格拉底式追问，居中、轻 */
+        .pattern-detail-tail {
+            margin-top: 12px;
+            padding: 8px 4px 4px;
+            text-align: center;
+            color: #888888;
+            font-size: 15px;
+            line-height: 1.9;
+        }
+
+        /* 「观察中」列表行：比正式模式更淡，弱化存在感 */
+        .pattern-item-observing .pattern-name {
+            color: #A0826D;
+            font-weight: 400;
+        }
+
+        .pattern-detail-records {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .pattern-detail-record {
+            background-color: #F8F8F8;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #666666;
+        }
+
+        .pattern-detail-record-date {
+            color: #999999;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        /* 引导流程样式 */
+        .onboarding-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .onboarding-container {
+            background: #F5F1E8;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .onboarding-close {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: none;
+            font-size: 22px;
+            color: #888888;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            line-height: 1;
+        }
+
+        .onboarding-close:hover {
+            background-color: #FFFFFF;
+            color: #444444;
+        }
+
+        .onboarding-step {
+            display: none;
+        }
+
+        .onboarding-step.active {
+            display: block;
+        }
+
+        .onboarding-title {
+            font-size: 24px;
+            color: #333333;
+            margin-bottom: 16px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .onboarding-subtitle {
+            font-size: 16px;
+            color: #666666;
+            margin-bottom: 32px;
+            text-align: center;
+            line-height: 1.8;
+        }
+
+        .animal-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .animal-option {
+            background-color: #FFFFFF;
+            padding: 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            text-align: center;
+        }
+
+        .animal-option:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .animal-option.selected {
+            border-color: #1873CC;
+            background-color: #F0F8FF;
+        }
+
+        .animal-icon {
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+
+        .animal-name {
+            font-size: 16px;
+            color: #333333;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .animal-trait {
+            font-size: 14px;
+            color: #666666;
+            line-height: 1.4;
+        }
+
+        .onboarding-input {
+            width: 100%;
+            padding: 16px;
+            border: 1px solid #E8E8E8;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            margin-bottom: 16px;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .onboarding-input:focus {
+            outline: none;
+            border-color: #1873CC;
+        }
+
+        .onboarding-example {
+            font-size: 14px;
+            color: #999999;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .action-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .action-option {
+            background-color: #FFFFFF;
+            padding: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            font-size: 15px;
+            color: #333333;
+        }
+
+        .action-option:hover {
+            background-color: #F8F8F8;
+        }
+
+        .action-option.selected {
+            border-color: #1873CC;
+            background-color: #F0F8FF;
+        }
+
+        .onboarding-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .onboarding-button {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .onboarding-button-primary {
+            background: linear-gradient(135deg, #D4A574 0%, #C4956A 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(212, 165, 116, 0.3);
+        }
+
+        .onboarding-button-primary:hover {
+            background: linear-gradient(135deg, #C4956A 0%, #B48560 100%);
+            box-shadow: 0 4px 12px rgba(212, 165, 116, 0.4);
+        }
+
+        .onboarding-button-primary:disabled {
+            background: #CCCCCC;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .onboarding-button-secondary {
+            background-color: #FFFFFF;
+            color: #666666;
+            border: 1px solid #E8E8E8;
+        }
+
+        .onboarding-button-secondary:hover {
+            background-color: #F8F8F8;
+        }
+
+        /* 理想的自己页面的星光装饰 */
+        .profile-sparkle {
+            position: absolute;
+            color: rgba(190, 140, 30, 0.65);
+            font-size: 20px;
+            animation: profile-sparkle-anim 3.8s ease-in-out infinite;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        @keyframes profile-sparkle-anim {
+            0%, 100% {
+                opacity: 0;
+                transform: translateY(0) scale(0.6);
+            }
+            45%, 55% {
+                opacity: 0.75;
+                transform: translateY(-7px) scale(1.15);
+            }
+        }
+
+        .welcome-content {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .welcome-icon {
+            font-size: 80px;
+            margin-bottom: 24px;
+        }
+
+        .welcome-text {
+            font-size: 18px;
+            color: #666666;
+            line-height: 2;
+            margin-bottom: 40px;
+        }
+
+        /* ============ 洞察小卡片（合上笔记本后弹出）============ */
+        .insight-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(60, 50, 35, 0.45);
+            backdrop-filter: blur(3px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            animation: insightFadeIn 0.4s ease;
+        }
+
+        @keyframes insightFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* 卡片容器（提供3D透视） */
+        .insight-card {
+            width: 300px;
+            min-height: 380px;
+            perspective: 1200px;
+            /* 入场：从下方轻轻浮起 */
+            animation: insightRise 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        @keyframes insightRise {
+            from { transform: translateY(40px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .insight-card-inner {
+            position: relative;
+            width: 100%;
+            transition: transform 0.9s cubic-bezier(0.4, 0.0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .insight-card.flipped .insight-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        /* 卡片正反面共用 */
+        .insight-face {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 14px;
+            background-color: #F5F1E8;
+            /* 纸张纹理 */
+            background-image: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(139, 111, 71, 0.03) 2px,
+                rgba(139, 111, 71, 0.03) 4px
+            );
+            border: 1px solid #D4C5A9;
+            box-shadow: 0 8px 30px rgba(139, 111, 71, 0.25);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 背面（内容多）用相对定位撑开容器高度 */
+        .insight-back {
+            position: relative;
+            width: 100%;
+            min-height: 380px;
+            max-height: 75vh;
+            transform: rotateY(180deg);
+            padding: 32px 28px;
+            justify-content: space-between;
+        }
+
+        /* 正面叠在背面上方，跟随容器高度 */
+        .insight-front {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+        }
+
+        .insight-front-icon {
+            font-size: 52px;
+            opacity: 0.85;
+        }
+
+        .insight-front-hint {
+            font-size: 14px;
+            color: #A0826D;
+            letter-spacing: 1px;
+        }
+
+        .insight-back-top {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-y: auto;
+            max-height: calc(75vh - 120px);
+        }
+
+        .insight-back-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .insight-back-title {
+            font-size: 15px;
+            color: #A0826D;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        .insight-back-text {
+            font-size: 17px;
+            color: #4A3F30;
+            line-height: 1.9;
+            text-align: left;
+            margin-top: 8px;
+            white-space: pre-wrap;
+        }
+
+        .insight-back-footer {
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        .insight-hint-line {
+            font-size: 13px;
+            color: #A0826D;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .insight-btn {
+            background: #C4956A;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 22px;
+            padding: 10px 32px;
+            font-size: 15px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .insight-btn:hover {
+            background: #B5824F;
+        }
+
+        .insight-btn-secondary {
+            background: none;
+            color: #A0826D;
+            border: 1px solid #D4C5A9;
+            margin-right: 10px;
+        }
+
+        .insight-btn-secondary:hover {
+            background: rgba(212, 197, 169, 0.2);
+        }
+
+        /* ============ 现在的你（onboarding step5）============ */
+        .profile-info-group {
+            margin-bottom: 24px;
+        }
+
+        .profile-info-label {
+            font-size: 15px;
+            color: #666666;
+            margin-bottom: 12px;
+        }
+
+        .profile-info-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .profile-info-option {
+            padding: 10px 20px;
+            border-radius: 24px;
+            border: 1px solid #E0D5C0;
+            background: #FFFFFF;
+            font-size: 14px;
+            color: #666666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .profile-info-option:hover {
+            border-color: #D4A574;
+            color: #A0826D;
+        }
+
+        .profile-info-option.selected {
+            border-color: #D4A574;
+            background: rgba(212, 165, 116, 0.12);
+            color: #A0826D;
+        }
+
+        /* ============ 反馈留言（profilePage 常驻入口）============ */
+        .feedback-section {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(212, 165, 116, 0.2);
+        }
+
+        .feedback-title {
+            font-size: 14px;
+            color: #999999;
+            margin-bottom: 12px;
+        }
+
+        .feedback-textarea {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #E0D5C0;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            resize: none;
+            min-height: 90px;
+            background: #FFFFFF;
+            margin-bottom: 12px;
+            color: #333333;
+        }
+
+        .feedback-textarea:focus {
+            outline: none;
+            border-color: #D4A574;
+        }
+
+        .feedback-submit-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(212, 165, 116, 0.15);
+            color: #A0826D;
+            font-size: 15px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .feedback-submit-btn:hover {
+            background: rgba(212, 165, 116, 0.3);
+        }
+
+        /* 工具区域 */
+        .tools-section {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(160, 130, 109, 0.2);
+        }
+
+        .tools-title {
+            font-size: 14px;
+            color: #C0A898;
+            margin-bottom: 12px;
+        }
+
+        .tools-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tool-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 10px;
+            border: 1px solid rgba(160, 130, 109, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.5);
+            color: #A0826D;
+            font-size: 14px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tool-btn:hover {
+            background: rgba(212, 165, 116, 0.15);
+            border-color: #D4A574;
+        }
+
+        /* ============ 深色主题 ============ */
+        body.dark-theme {
+            background-color: #2A231B;
+            background-image: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(139, 111, 71, 0.05) 2px,
+                rgba(139, 111, 71, 0.05) 4px
+            );
+            color: #E8DFD3;
+        }
+
+        body.dark-theme .user-text {
+            color: #E8DFD3;
+        }
+
+        body.dark-theme .ai-text {
+            color: #D4A574;
+        }
+
+        body.dark-theme .input-container {
+            background-color: #3A3025;
+            border-top-color: #4A3F32;
+        }
+
+        body.dark-theme .nav-bar {
+            background-color: #3A3025;
+            border-top-color: #4A3F32;
+        }
+
+        body.dark-theme .nav-item {
+            color: #8B7355;
+        }
+
+        body.dark-theme .nav-item.active {
+            color: #D4A574;
+        }
+
+        body.dark-theme .feedback-textarea {
+            background-color: #3A3025;
+            border-color: #4A3F32;
+            color: #E8DFD3;
+        }
+
+        body.dark-theme .feedback-submit-btn {
+            background: rgba(212, 165, 116, 0.2);
+            color: #D4A574;
+        }
+
+        body.dark-theme .feedback-submit-btn:hover {
+            background: rgba(212, 165, 116, 0.35);
+        }
+
+        body.dark-theme .tool-btn {
+            background: rgba(58, 48, 37, 0.8);
+            border-color: rgba(212, 165, 116, 0.3);
+            color: #D4A574;
+        }
+
+        body.dark-theme .tool-btn:hover {
+            background: rgba(212, 165, 116, 0.2);
+            border-color: #D4A574;
+        }
+
+        body.dark-theme .profile-label {
+            color: #8B7355;
+        }
+
+        body.dark-theme .profile-value {
+            color: #E8DFD3;
+        }
+
+        body.dark-theme .edit-button {
+            background: rgba(212, 165, 116, 0.15);
+            color: #D4A574;
+            border-color: rgba(212, 165, 116, 0.3);
+        }
+
+        body.dark-theme .diary-cover {
+            background: linear-gradient(135deg, #4A3F32 0%, #3A3025 100%);
+        }
+
+        body.dark-theme .diary-title {
+            color: #D4A574;
+        }
+
+        body.dark-theme .diary-subtitle {
+            color: #8B7355;
+        }
+
+        body.dark-theme .conversation-item {
+            background: rgba(58, 48, 37, 0.6);
+            border-color: rgba(212, 165, 116, 0.2);
+        }
+
+        body.dark-theme .conversation-item:hover {
+            background: rgba(212, 165, 116, 0.1);
+        }
+
+        body.dark-theme .conversation-preview {
+            color: #8B7355;
+        }
+
+        body.dark-theme .conversation-date {
+            color: #6B5B4A;
+        }
+
+        body.dark-theme .new-chat-button {
+            background: linear-gradient(135deg, #D4A574 0%, #B8956A 100%);
+            box-shadow: 0 4px 15px rgba(212, 165, 116, 0.3);
+        }
+
+        body.dark-theme .empty-text {
+            color: #6B5B4A;
+        }
+
+        body.dark-theme .pattern-card {
+            background: rgba(58, 48, 37, 0.6);
+            border-color: rgba(212, 165, 116, 0.2);
+        }
+
+        body.dark-theme .pattern-name {
+            color: #D4A574;
+        }
+
+        body.dark-theme .pattern-desc {
+            color: #8B7355;
+        }
+
+        body.dark-theme .pattern-count {
+            color: #6B5B4A;
+        }
+
+        body.dark-theme .loading span {
+            color: #8B7355;
+        }
+
+        body.dark-theme .loading-dot {
+            background-color: #D4A574;
+        }
+
+        body.dark-theme .copy-btn {
+            color: #8B7355;
+        }
+
+        body.dark-theme .copy-btn:hover {
+            color: #D4A574;
+        }
+
+        body.dark-theme .copy-btn.copied {
+            color: #7CB342;
+        }
+
+        /* ============ 触发式留存反馈弹窗 ============ */
+        .retention-feedback-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(60, 50, 35, 0.45);
+            backdrop-filter: blur(3px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            animation: fadeIn 0.3s;
+        }
+
+        .retention-feedback-container {
+            background: #F5F1E8;
+            border-radius: 20px;
+            padding: 36px 32px;
+            max-width: 360px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(139, 111, 71, 0.25);
+            text-align: center;
+            animation: slideUp 0.3s;
+        }
+
+        .retention-feedback-question {
+            font-size: 18px;
+            color: #333333;
+            line-height: 1.8;
+            margin-bottom: 28px;
+        }
+
+        .retention-feedback-options {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .retention-option-btn {
+            padding: 10px 18px;
+            border-radius: 24px;
+            border: 1px solid #D4C5A9;
+            background: #FFFFFF;
+            font-size: 15px;
+            color: #666666;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .retention-option-btn:hover {
+            border-color: #D4A574;
+            color: #A0826D;
+        }
+
+        .retention-option-btn.selected {
+            border-color: #D4A574;
+            background: rgba(212, 165, 116, 0.15);
+            color: #A0826D;
+        }
+
+        .retention-followup-text {
+            font-size: 15px;
+            color: #666666;
+            margin-bottom: 12px;
+        }
+
+        .retention-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #E0D5C0;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            resize: none;
+            min-height: 80px;
+            background: #FFFFFF;
+            margin-bottom: 16px;
+            color: #333333;
+        }
+
+        .retention-textarea:focus {
+            outline: none;
+            border-color: #D4A574;
+        }
+
+        .retention-feedback-footer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-top: 4px;
+        }
+
+        .retention-skip-btn {
+            padding: 10px 20px;
+            border: none;
+            background: none;
+            font-size: 14px;
+            color: #999999;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .retention-submit-btn {
+            padding: 10px 28px;
+            border: none;
+            border-radius: 24px;
+            background: #C4956A;
+            color: #FFFFFF;
+            font-size: 15px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.2s;
+        }
+
+        .retention-submit-btn:hover {
+            background: #B5824F;
+        }
+    </style>
+</head>
+<body>
+    <!-- 对话页 -->
+    <div id="chatPage" class="page active">
+        <!-- 合上笔记本按钮 -->
+        <button id="closeDiaryButton" class="close-diary-button" onclick="closeDiary()" style="display: none;">
+            📕 合上笔记本
+        </button>
+
+        <div class="chat-container" id="chatContainer">
+            <!-- 对话消息会动态添加到这里 -->
+        </div>
+        <div class="input-container">
+            <!-- 心情选择栏 -->
+            <div id="moodSelector" style="display: none; padding: 12px 0; border-bottom: 1px solid #E8E8E8; margin-bottom: 12px;">
+                <div style="font-size: 14px; color: #999999; margin-bottom: 8px;">今天的心情？</div>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <button class="mood-option" onclick="selectMood('😊', '开心')" style="font-size: 24px; background: none; border: none; cursor: pointer; padding: 4px;">😊</button>
+                    <button class="mood-option" onclick="selectMood('😌', '平静')" style="font-size: 24px; background: none; border: none; cursor: pointer; padding: 4px;">😌</button>
+                    <button class="mood-option" onclick="selectMood('😔', '低落')" style="font-size: 24px; background: none; border: none; cursor: pointer; padding: 4px;">😔</button>
+                    <button class="mood-option" onclick="selectMood('😰', '焦虑')" style="font-size: 24px; background: none; border: none; cursor: pointer; padding: 4px;">😰</button>
+                    <button class="mood-option" onclick="selectMood('😤', '烦躁')" style="font-size: 24px; background: none; border: none; cursor: pointer; padding: 4px;">😤</button>
+                    <button class="mood-option" onclick="selectMood('😶', '平淡')" style="font-size: 24px; background: none; border: none; cursor: pointer; padding: 4px;">😶</button>
+                    <button class="mood-option" onclick="selectMood('🤔', '纠结')" style="font-size: 24px; background: none; border: none; cursor: pointer; padding: 4px;">🤔</button>
+                    <button class="mood-option" onclick="selectMood('😮‍💨', '疲惫')" style="font-size: 24px; background: none; border: none; cursor: pointer; padding: 4px;">😮‍💨</button>
+                    <button onclick="skipMood()" style="font-size: 14px; color: #999999; background: none; border: none; cursor: pointer; padding: 4px 8px; margin-left: auto;">[跳过]</button>
+                </div>
+            </div>
+            <div class="input-wrapper">
+                <textarea
+                    id="userInput"
+                    placeholder="输入你的消息..."
+                    rows="1"
+                ></textarea>
+                <button id="sendButton">发送</button>
+            </div>
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- 首页（日记本） -->
+    <div id="diaryPage" class="page">
+        <div class="diary-header">
+            <!-- 魔法星星装饰 -->
+            <div class="magic-star">✨</div>
+            <div class="magic-star">✨</div>
+
+            <!-- 羽毛笔装饰 -->
+            <div class="feather-pen">🪶</div>
+
+            <!-- 手绘日记本图标 -->
+            <svg xmlns="http://www.w3.org/2000/svg" data-name="Слой 1" viewBox="0 0 100 100" x="0px" y="0px" class="diary-icon">
+                <title>book</title>
+                <path fill="#8B6F47" d="M95.75318,61.2477c-0.82148-1.11935-1.66937-2.21642-.75491-3.695a1.69784,1.69784,0,0,0,.23608-0.75248,2.63347,2.63347,0,0,0-.07-1.12447c-0.65915-1.61666-1.48353-3.17324-2.04543-4.82066-0.96722-2.83577-1.78329-5.72309-2.62456-8.46422l0.268-1.01391c-0.31467-.02811-0.62942-0.08056-0.944-0.07921a11.004,11.004,0,0,1-1.90123.03556c-2.42363-.42511-4.86013-0.82263-7.24144-1.42853-1.81443-.46167-3.536-1.27607-5.32942-1.83584-1.99679-.62324-4.00614-1.24035-6.05-1.66984-2.49125-.5235-5.01986-0.87762-7.54018-1.25211-2.84489-.42273-5.4744.46119-8.03314,1.53078a30.37373,30.37373,0,0,0-2.89742,1.67174,1.02245,1.02245,0,0,1-.77923.12814,24.0414,24.0414,0,0,1-2.19415-1.20747c-2.81585-1.70888-6.00862-1.661-9.116-1.86472a25.11413,25.11413,0,0,0-4.91166.35434c-3.97142.53044-7.93362,1.13074-11.89754,1.71643a20.52489,20.52489,0,0,1-7.97578.09519,0.64,0.64,0,0,0-.85121.57736c-0.61732,2.00743-1.13826,4.054-1.90442,6.00383-1.01772,2.59-2.23734,5.1003-3.35792,7.65027C7.0822,53.522,6.40716,55.27989,5.57251,56.959c-0.29672.59694-.39565,0.954,0.08117,1.25927C4.995,59.74292,4.31627,61.141,3.79022,62.59431c-0.33534.92647-.01142,1.23427,0.99525,1.26451,0.53249,0.016,1.0664.03673,1.59587,0.09186,1.50151,0.15637,2.99777.37542,4.50221,0.4881,1.83558,0.13748,3.678.18183,5.51626,0.28644,0.88945,0.05063,1.77513.17261,2.66476,0.21325,0.56977,0.026,1.14474-.0728,1.7155-0.05507a44.32087,44.32087,0,0,0,10.71333-.54112,40.07146,40.07146,0,0,0,4.67338-1.21586c1.39515-.48009,2.69168-1.239,4.06432-1.7943a10.87714,10.87714,0,0,1,5.10737-1.21983,1.8846,1.8846,0,0,0,2.00236,1.72322,5.96359,5.96359,0,0,1,1.03183.06627,18.94476,18.94476,0,0,0,6.48662.44126c1.24719-.08486,2.52015-0.28074,3.05242-1.61485,0.57987-1.45342,1.52527-1.67335,2.9571-1.42065,1.98356,0.35007,3.97812.64483,5.9511,1.04619,3.037,0.6178,6.05876,1.31041,9.08891,1.96231,1.394,0.2999,2.7872.60815,4.19027,0.85957,1.86867,0.33486,3.77609.49866,5.61338,0.95242a16.06961,16.06961,0,0,0,7.47415.11716,8.03592,8.03592,0,0,0,2.16277-.9682,5.39475,5.39475,0,0,0,.98795-1.07543A11.00343,11.00343,0,0,0,95.75318,61.2477ZM50.64463,40.04981a1.25485,1.25485,0,0,1,.56838-0.78233c2.63045-1.65908,5.3757-3.11713,8.57123-3.1315a40.53115,40.53115,0,0,1,6.08882.49643,41.94945,41.94945,0,0,1,5.19511,1.20379c1.70543,0.48033,3.37346,1.09379,5.05645,1.65322,1.30857,0.435,2.608.899,3.92471,1.30742a25.22483,25.22483,0,0,0,2.68369.69376c1.39832,0.26979,2.80793.48555,4.21786,0.68883a10.45951,10.45951,0,0,0,1.79776.10626c0.83934-.02523.89725,0.70015,1.05658,1.16774,0.75757,2.22358,1.50636,4.45682,2.0904,6.72974a10.05314,10.05314,0,0,0,.81665,2.83128c0.46944,0.78811.87422,1.61473,1.253,2.32248a6.83443,6.83443,0,0,0-1.292.39538,6.048,6.048,0,0,1-3.72236.47381c-2.89658-.32873-5.79574-0.71865-8.65112-1.29537A28.27367,28.27367,0,0,1,75.24342,53.23a26.68921,26.68921,0,0,0-7.84227-1.63754,35.85976,35.85976,0,0,0-10.42552.68927c-1.60747.32589-3.16074,0.92055-4.73692,1.39882-1.22566.3719-1.55444,0.09147-1.57383-1.18871-0.04343-2.86785-.16016-5.73467-0.19459-8.60253C50.45492,42.60956,50.534,41.3255,50.64463,40.04981ZM6.90809,56.7691a9.00618,9.00618,0,0,1,.40445-1.12669,0.64393,0.64393,0,0,0,.03651-0.08771,0.60732,0.60732,0,0,1,.02328-0.4435,5.56031,5.56031,0,0,1,.7648-1.30741c0.13579-.37552.4413-0.70672,0.57816-1.04839,1.00339-2.5051,2.16635-4.94581,3.19958-7.43964,0.557-1.3443.967-2.74932,1.449-4.12492,0.23282-.66437.45416-1.335,0.7373-1.97783a0.69195,0.69195,0,0,1,.55206-0.28234,40.79165,40.79165,0,0,0,9.18149-.71757c3.30854-.61827,6.65476-1.03631,9.98649-1.52858a34.60681,34.60681,0,0,1,8.85771.06782A15.38406,15.38406,0,0,1,48.629,38.85066a2.13783,2.13783,0,0,1,1.07888,2.0496c-0.00152,3.35048.09022,6.70089,0.1272,10.05155,0.00816,0.73889-.06368,1.47866-0.099,2.2245-1.07114-.26169-2.27871-0.50835-3.4573-0.85384a17.97269,17.97269,0,0,0-9.90842.24058c-3.06935.82785-6.06634,1.92181-9.12971,2.77468a17.05622,17.05622,0,0,1-8.8.38574,14.18162,14.18162,0,0,0-7.36887.18609c-1.16688.32152-2.32847,0.66294-3.50029,0.96495A1.843,1.843,0,0,1,6.90809,56.7691Zm36.3215,1.27437a32.7309,32.7309,0,0,0-4.03832,1.43232,45.52483,45.52483,0,0,1-10.56145,3.46966,24.21458,24.21458,0,0,1-7.47931.47643c-1.443-.18823-2.91684-0.127-4.37068-0.25034-1.02555-.087-2.03689-0.33171-3.06149-0.44155-1.95049-.2091-3.90594-0.37206-6.16077-0.58229,0.03429-.72444.073-1.50132,0.10661-2.27842,0.00923-.21317.00734-0.42707,0.004-0.64053C7.64635,57.854,7.636,57.80906,8.95658,57.52307a60.41346,60.41346,0,0,1,6.06026-1.147,16.56493,16.56493,0,0,1,3.21875.43627c1.39464,0.13392,2.79706.22542,4.19763,0.25014a22.47686,22.47686,0,0,0,6.46217-1.25115c1.60526-.45185,3.159-1.08461,4.75841-1.56017a38.70827,38.70827,0,0,1,4.384-1.105,15.457,15.457,0,0,1,7.6416.14728c1.39967,0.46376,2.80319.92136,4.17573,1.4567a1.30088,1.30088,0,0,1,.51884.85675,1.34048,1.34048,0,0,1-.59036.4833C47.75917,57.27829,45.414,57.39054,43.22959,58.04347Zm13.64092,1.11888a1.99163,1.99163,0,0,1-2.309,1.2863c-2.16029-.19638-4.31361-0.48411-6.46009-0.80025a2.13862,2.13862,0,0,1-.75939-0.71684,2.53652,2.53652,0,0,1,.58257-0.56662c0.97828-.46273,1.97332-0.89159,2.97406-1.30413a2.98107,2.98107,0,0,1,.73613-0.11717c1.13275,0.263,2.36636.09948,3.2141,1.08575a1.03268,1.03268,0,0,0,.50626.10521,6.06556,6.06556,0,0,1,1.31874.28071A0.8213,0.8213,0,0,1,56.87051,59.16236Zm37.41685-2.16654c-0.37144,1.076-.77979,2.14324-1.24581,3.18173-0.751,1.67352-2.37321,2.33934-4.77113,1.8958-1.66544-.30806-3.35941-0.45851-5.03382-0.72255q-1.96165-.30932-3.90567-0.72812c-3.13093-.679-6.2615-1.36221-9.37892-2.1-1.59691-.37792-3.1414-1.03058-4.75278-1.28038a24.24074,24.24074,0,0,0-5.6967-.33165,12.85737,12.85737,0,0,1-4.78037-.63956,26.638,26.638,0,0,0-2.81427-.4382,0.66685,0.66685,0,0,1-.47757-0.36658,0.724,0.724,0,0,1,.29389-0.60007c0.96032-.37437,1.94769-0.67863,2.92078-1.02119a38.80913,38.80913,0,0,1,8.42846-1.52358,19.48641,19.48641,0,0,1,5.90682.45618,6.69715,6.69715,0,0,0,.94307.13531c2.51447,0.10666,4.7407,1.2219,7.061,2.00619a42.624,42.624,0,0,0,8.04936,1.79357,42.43469,42.43469,0,0,0,4.89356.51721,6.37381,6.37381,0,0,0,4.24922-1.29649A2.94615,2.94615,0,0,1,94.28735,56.99582Z"/>
+            </svg>
+
+            <div class="text-line line-1">还记得哈利波特里的汤姆·里德尔日记本吗？</div>
+            <div class="text-line line-2" style="margin-top: 1em;">你写下困扰，它会回应你。</div>
+            <div class="text-line line-3" style="margin-top: 1em;">但这次，回应你的不是伏地魔，</div>
+            <div class="text-line line-4">而是理想的你自己。</div>
+            <div class="text-line line-5" style="margin-top: 1em;">温柔的、接纳的、不批判的你。</div>
+        </div>
+        <div class="diary-list" id="diaryList">
+            <div class="clear-history-container">
+                <button class="clear-history-btn" onclick="clearAllHistory()">🗑️ 清空历史</button>
+            </div>
+            <!-- 对话记录会动态添加到这里 -->
+        </div>
+        <button class="new-chat-button" onclick="startNewConversationFromButton()" title="开始新对话">
+            <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="-5 -10 110 135">
+                <path d="m24.102 75.699c6.5-25.301 19.801-43.199 40-53.801-15.801 9.8008-27.703 24.801-33.602 42.402-1.5 4.3984-2.6016 8.8984-3.3008 13.5-0.59766 3.6992-0.89844 7.3984-0.89844 11.098 0 0.60156 0.39844 1 1 1 0.60156 0 1-0.39844 1-1 0-3.5 0.30078-7 0.80078-10.398 0.69922 0.19922 1.5 0.30078 2.3008 0.30078 5.7969 0.097657 11.797-4.3008 13.598-9.6992 1.1992-3.6016 2.6992-7 4.5-10.301l-6.3008-2.1016 9.1016-2.5c3.5-5.3008 7.6992-10 12.602-14.102l-5.4023-2.8984 10.602-1c0.69922-0.5 1.3984-0.89844 2.1016-1.3984 6.6992-4.1992 8.8008-13 4.6016-19.699-3.3984-5.5-13.199-6-19.699-4.6016-4.3008 0.89844-8.3008 2.8984-12 5.6992l-1.3984 10-3-6.1992c-5.3984 5.3008-9.8984 12.199-13.102 19.398l2.293 9.6016-4.5-4.1992c-5 13.199-5.8984 26.098-1.2969 30.898z"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- 模式地图页 -->
+    <div id="patternPage" class="page">
+        <div class="pattern-header" onclick="toggleIdealExpand()" style="cursor:pointer;">
+            <div class="pattern-ideal" id="patternIdeal">
+                <!-- 理想的自己会显示在这里 -->
+            </div>
+            <div id="idealDetails" style="display:none; margin-top:16px; padding-top:16px; border-top:1px solid rgba(212,165,116,0.2);">
+                <!-- 展开的场景和行动方向 -->
+            </div>
+        </div>
+        <div class="pattern-list" id="patternList">
+            <!-- 模式列表会动态添加到这里 -->
+        </div>
+        <button class="new-chat-button" onclick="startNewConversationFromButton()" title="开始新对话">
+            <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="-5 -10 110 135">
+                <path d="m24.102 75.699c6.5-25.301 19.801-43.199 40-53.801-15.801 9.8008-27.703 24.801-33.602 42.402-1.5 4.3984-2.6016 8.8984-3.3008 13.5-0.59766 3.6992-0.89844 7.3984-0.89844 11.098 0 0.60156 0.39844 1 1 1 0.60156 0 1-0.39844 1-1 0-3.5 0.30078-7 0.80078-10.398 0.69922 0.19922 1.5 0.30078 2.3008 0.30078 5.7969 0.097657 11.797-4.3008 13.598-9.6992 1.1992-3.6016 2.6992-7 4.5-10.301l-6.3008-2.1016 9.1016-2.5c3.5-5.3008 7.6992-10 12.602-14.102l-5.4023-2.8984 10.602-1c0.69922-0.5 1.3984-0.89844 2.1016-1.3984 6.6992-4.1992 8.8008-13 4.6016-19.699-3.3984-5.5-13.199-6-19.699-4.6016-4.3008 0.89844-8.3008 2.8984-12 5.6992l-1.3984 10-3-6.1992c-5.3984 5.3008-9.8984 12.199-13.102 19.398l2.293 9.6016-4.5-4.1992c-5 13.199-5.8984 26.098-1.2969 30.898z"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- 理想的自己页 -->
+    <div id="profilePage" class="page">
+        <div class="profile-container">
+            <!-- 星光围绕豹子光圈 -->
+            <span class="profile-sparkle" style="top:22px;left:calc(50% - 90px);animation-delay:0s;">✦</span>
+            <span class="profile-sparkle" style="top:16px;left:calc(50% + 62px);animation-delay:1.8s;">✧</span>
+            <span class="profile-sparkle" style="top:105px;left:calc(50% - 100px);animation-delay:0.9s;font-size:16px;">✦</span>
+            <span class="profile-sparkle" style="top:98px;left:calc(50% + 75px);animation-delay:2.6s;font-size:16px;">✧</span>
+            <div class="profile-animal" id="profileAnimal">
+                <!-- 动物图标 -->
+            </div>
+            <div class="profile-section">
+                <div class="profile-label">核心特质</div>
+                <div class="profile-value" id="profileTrait">
+                    <!-- 特质描述 -->
+                </div>
+            </div>
+            <div class="profile-section">
+                <div class="profile-label">理想场景</div>
+                <div class="profile-value" id="profileScene">
+                    <!-- 场景描述 -->
+                </div>
+            </div>
+            <div class="profile-section">
+                <div class="profile-label">行动方向</div>
+                <div class="profile-value" id="profileActions">
+                    <!-- 行动方向 -->
+                </div>
+            </div>
+            <div class="profile-section" id="profileCurrentInfo"></div>
+            <button class="edit-button" onclick="editProfile()">编辑</button>
+            <div class="feedback-section">
+                <div class="feedback-title">反馈留言</div>
+                <textarea id="feedbackTextarea" class="feedback-textarea" placeholder="有什么想说的？时空接线员会经常查看。"></textarea>
+                <button class="feedback-submit-btn" onclick="submitProfileFeedback()">发送</button>
+            </div>
+
+            <div class="tools-section">
+                <div class="tools-title">小工具</div>
+                <div class="tools-buttons">
+                    <button class="tool-btn" onclick="sharePage()">📤 分享</button>
+                    <button class="tool-btn" onclick="toggleTheme()">🌙 主题</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引导流程 -->
+    <div id="onboardingOverlay" class="onboarding-overlay" style="display: none;">
+        <div class="onboarding-container">
+            <button class="onboarding-close" onclick="cancelOnboarding()">×</button>
+            <!-- 步骤 1: 欢迎页 -->
+            <div id="step1" class="onboarding-step active">
+                <div class="welcome-content">
+                    <div class="welcome-icon">✨</div>
+                    <h2 class="onboarding-title">欢迎来到理想的自己</h2>
+                    <div class="welcome-text">
+                        这是一个能让你看见自己模式的时空日记本<br><br>
+                        在开始之前，让我们先设置一下<br>
+                        五年后理想的你
+                    </div>
+                    <div style="margin: 0 0 28px; text-align: left;">
+                        <p style="font-size: 14px; color: #999999; margin-bottom: 10px;">我该怎么称呼你？</p>
+                        <input type="text" id="nicknameInput" class="onboarding-input" style="min-height: auto; padding: 12px 14px; margin-bottom: 0;" placeholder="输入你的名字或昵称（可选）" maxlength="10">
+                    </div>
+                    <div class="onboarding-buttons">
+                        <button class="onboarding-button onboarding-button-primary" onclick="nextStep(2)">开始设置</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 步骤 2: 选择动物 -->
+            <div id="step2" class="onboarding-step">
+                <h2 class="onboarding-title">选择你的核心特质</h2>
+                <p class="onboarding-subtitle">如果用一个动物来代表五年后的你，你会选哪个？</p>
+                <div class="animal-grid">
+                    <div class="animal-option" onclick="selectAnimal('tiger', '老虎', '果断、有力量、不拖延')">
+                        <div class="animal-icon">🐯</div>
+                        <div class="animal-name">老虎</div>
+                        <div class="animal-trait">果断、有力量、不拖延</div>
+                    </div>
+                    <div class="animal-option" onclick="selectAnimal('leopard', '豹子', '敏捷、专注、高效')">
+                        <div class="animal-icon">🐆</div>
+                        <div class="animal-name">豹子</div>
+                        <div class="animal-trait">敏捷、专注、高效</div>
+                    </div>
+                    <div class="animal-option" onclick="selectAnimal('elephant', '大象', '稳重、智慧、有耐心')">
+                        <div class="animal-icon">🐘</div>
+                        <div class="animal-name">大象</div>
+                        <div class="animal-trait">稳重、智慧、有耐心</div>
+                    </div>
+                    <div class="animal-option" onclick="selectAnimal('fox', '狐狸', '灵活、聪慧、善于应变')">
+                        <div class="animal-icon">🦊</div>
+                        <div class="animal-name">狐狸</div>
+                        <div class="animal-trait">灵活、聪慧、善于应变</div>
+                    </div>
+                    <div class="animal-option" onclick="selectAnimal('wolf', '狼', '坚韧、独立、有目标感')">
+                        <div class="animal-icon">🐺</div>
+                        <div class="animal-name">狼</div>
+                        <div class="animal-trait">坚韧、独立、有目标感</div>
+                    </div>
+                    <div class="animal-option" onclick="selectAnimal('eagle', '鹰', '高瞻远瞩、自由、不被束缚')">
+                        <div class="animal-icon">🦅</div>
+                        <div class="animal-name">鹰</div>
+                        <div class="animal-trait">高瞻远瞩、自由、不被束缚</div>
+                    </div>
+                    <div class="animal-option" onclick="selectAnimal('deer', '鹿', '温柔、敏感、与自然和谐')">
+                        <div class="animal-icon">🦌</div>
+                        <div class="animal-name">鹿</div>
+                        <div class="animal-trait">温柔、敏感、与自然和谐</div>
+                    </div>
+                    <div class="animal-option" onclick="selectAnimal('bear', '熊', '强大、保护、有安全感')">
+                        <div class="animal-icon">🐻</div>
+                        <div class="animal-name">熊</div>
+                        <div class="animal-trait">强大、保护、有安全感</div>
+                    </div>
+                </div>
+                <div class="onboarding-buttons">
+                    <button class="onboarding-button onboarding-button-secondary" onclick="prevStep(1)">上一步</button>
+                    <button id="step2Next" class="onboarding-button onboarding-button-primary" onclick="nextStep(3)" disabled>下一步</button>
+                </div>
+            </div>
+
+            <!-- 步骤 3: 理想场景 -->
+            <div id="step3" class="onboarding-step">
+                <h2 class="onboarding-title">你的理想场景</h2>
+                <p class="onboarding-subtitle">五年后的你，在什么环境下做什么？</p>
+                <textarea
+                    id="sceneInput"
+                    class="onboarding-input"
+                    placeholder="描述你的理想场景..."
+                    oninput="checkStep3()"
+                ></textarea>
+                <div class="onboarding-example">
+                    💡 例如：在咖啡馆写作，每天专注 2-3 小时<br>
+                    💡 例如：在家陪孩子，有充足的时间和耐心<br>
+                    💡 例如：在公司带团队，从容应对各种挑战
+                </div>
+                <div class="onboarding-buttons">
+                    <button class="onboarding-button onboarding-button-secondary" onclick="prevStep(2)">上一步</button>
+                    <button id="step3Next" class="onboarding-button onboarding-button-primary" onclick="nextStep(4)" disabled>下一步</button>
+                </div>
+            </div>
+
+            <!-- 步骤 4: 行动方向 + 可选痛点 -->
+            <div id="step4" class="onboarding-step">
+                <h2 class="onboarding-title">你的行动方向</h2>
+                <p class="onboarding-subtitle">为了朝这个方向靠近，你希望自己在哪些方面有行动？（可多选）</p>
+                <div class="action-options">
+                    <div class="action-option" onclick="toggleAction(this, '不拖延，说做就做')">不拖延，说做就做</div>
+                    <div class="action-option" onclick="toggleAction(this, '坚持创作/写作')">坚持创作/写作</div>
+                    <div class="action-option" onclick="toggleAction(this, '照顾好身体（运动、睡眠、饮食）')">照顾好身体（运动、睡眠、饮食）</div>
+                    <div class="action-option" onclick="toggleAction(this, '建立边界，学会拒绝')">建立边界，学会拒绝</div>
+                    <div class="action-option" onclick="toggleAction(this, '减少自我攻击，对自己温柔')">减少自我攻击，对自己温柔</div>
+                    <div class="action-option" onclick="toggleAction(this, '断舍离，简化生活')">断舍离，简化生活</div>
+                    <div class="action-option" onclick="toggleAction(this, '深度工作，减少分心')">深度工作，减少分心</div>
+                    <div class="action-option" onclick="toggleAction(this, '建立稳定的关系')">建立稳定的关系</div>
+                    <div class="action-option" onclick="toggleAction(this, '探索新的可能性')">探索新的可能性</div>
+                </div>
+
+                <!-- 可选：具体痛点（让对话更懂你） -->
+                <div style="border-top: 1px dashed #E0D5C0; padding-top: 20px; margin-bottom: 24px;">
+                    <p style="font-size: 15px; color: #8B6F47; margin-bottom: 6px;">如果愿意，再具体一点 ✨</p>
+                    <p style="font-size: 13px; color: #B0A088; margin-bottom: 16px;">这能让对话更懂你，留空也没关系</p>
+
+                    <div style="margin-bottom: 16px;">
+                        <p style="font-size: 14px; color: #666; margin-bottom: 8px;">有没有一件事，你一直想做但没做？</p>
+                        <input type="text" id="painPoint1Input" class="onboarding-input" style="min-height: auto; margin-bottom: 4px;" placeholder="比如：想做个作品集，但每次打开电脑就刷手机">
+                    </div>
+
+                    <div>
+                        <p style="font-size: 14px; color: #666; margin-bottom: 8px;">有没有一句话，你常对自己说？</p>
+                        <input type="text" id="painPoint2Input" class="onboarding-input" style="min-height: auto; margin-bottom: 4px;" placeholder="比如：我总觉得自己不够好">
+                    </div>
+                </div>
+
+                <div class="onboarding-buttons">
+                    <button class="onboarding-button onboarding-button-secondary" onclick="prevStep(3)">上一步</button>
+                    <button id="step4Next" class="onboarding-button onboarding-button-primary" onclick="nextStep(5)" disabled>下一步</button>
+                </div>
+            </div>
+
+            <!-- 步骤 5: 现在的你 -->
+            <div id="step5" class="onboarding-step">
+                <h2 class="onboarding-title">那现在的你呢？</h2>
+
+                <div class="profile-info-group">
+                    <p class="profile-info-label">性别</p>
+                    <div class="profile-info-options">
+                        <div class="profile-info-option" data-field="gender" data-value="男" onclick="selectProfileInfo('gender', '男', this)">男</div>
+                        <div class="profile-info-option" data-field="gender" data-value="女" onclick="selectProfileInfo('gender', '女', this)">女</div>
+                        <div class="profile-info-option" data-field="gender" data-value="其他" onclick="selectProfileInfo('gender', '其他', this)">其他</div>
+                    </div>
+                </div>
+
+                <div class="profile-info-group">
+                    <p class="profile-info-label">年龄</p>
+                    <div class="profile-info-options">
+                        <div class="profile-info-option" data-field="ageRange" data-value="18岁以下" onclick="selectProfileInfo('ageRange', '18岁以下', this)">18岁以下</div>
+                        <div class="profile-info-option" data-field="ageRange" data-value="18-24岁" onclick="selectProfileInfo('ageRange', '18-24岁', this)">18-24岁</div>
+                        <div class="profile-info-option" data-field="ageRange" data-value="25-30岁" onclick="selectProfileInfo('ageRange', '25-30岁', this)">25-30岁</div>
+                        <div class="profile-info-option" data-field="ageRange" data-value="31-40岁" onclick="selectProfileInfo('ageRange', '31-40岁', this)">31-40岁</div>
+                        <div class="profile-info-option" data-field="ageRange" data-value="40岁以上" onclick="selectProfileInfo('ageRange', '40岁以上', this)">40岁以上</div>
+                    </div>
+                </div>
+
+                <div class="profile-info-group">
+                    <p class="profile-info-label">目前状态</p>
+                    <div class="profile-info-options">
+                        <div class="profile-info-option" data-field="status" data-value="上学" onclick="selectProfileInfo('status', '上学', this)">上学</div>
+                        <div class="profile-info-option" data-field="status" data-value="上班" onclick="selectProfileInfo('status', '上班', this)">上班</div>
+                        <div class="profile-info-option" data-field="status" data-value="自由职业" onclick="selectProfileInfo('status', '自由职业', this)">自由职业</div>
+                        <div class="profile-info-option" data-field="status" data-value="Gap" onclick="selectProfileInfo('status', 'Gap', this)">Gap</div>
+                        <div class="profile-info-option" data-field="status" data-value="其他" onclick="selectProfileInfo('status', '其他', this)">其他</div>
+                    </div>
+                </div>
+
+                <div class="onboarding-buttons">
+                    <button class="onboarding-button onboarding-button-secondary" onclick="prevStep(4)">上一步</button>
+                    <button id="step5Next" class="onboarding-button onboarding-button-primary" onclick="completeOnboarding()" disabled>完成</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模式详情弹窗 -->
+    <div id="patternDetailOverlay" class="pattern-detail-overlay" style="display: none;" onclick="closePatternDetail()">
+        <div class="pattern-detail-container" onclick="event.stopPropagation()">
+            <button class="pattern-detail-close" onclick="closePatternDetail()">×</button>
+            <div id="patternDetailContent">
+                <!-- 动态内容会插入这里 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 触发式留存反馈弹窗 -->
+    <div id="retentionFeedbackOverlay" class="retention-feedback-overlay" style="display: none;">
+        <div class="retention-feedback-container">
+            <p class="retention-feedback-question">下次感到想聊聊自己，<br>你还会来吗？</p>
+            <div class="retention-feedback-options">
+                <button class="retention-option-btn" onclick="selectRetentionOption('会')">会</button>
+                <button class="retention-option-btn" onclick="selectRetentionOption('可能会')">可能会</button>
+                <button class="retention-option-btn" onclick="selectRetentionOption('不太会')">不太会</button>
+            </div>
+            <div id="retentionFollowup" style="display: none; margin-bottom: 4px;">
+                <p class="retention-followup-text" id="retentionFollowupText"></p>
+                <textarea id="retentionTextarea" class="retention-textarea" placeholder="可以说说吗？（可选）"></textarea>
+            </div>
+            <div class="retention-feedback-footer">
+                <button class="retention-skip-btn" onclick="skipRetentionFeedback()">跳过</button>
+                <button id="retentionSubmitBtn" class="retention-submit-btn" style="display: none;" onclick="submitRetentionFeedback()">提交</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部导航栏 -->
+    <div class="nav-bar">
+        <button class="nav-item" onclick="switchPage('diaryPage')">
+            <div class="nav-icon">📖</div>
+            <div class="nav-label">首页</div>
+        </button>
+        <button class="nav-item" onclick="switchPage('patternPage')">
+            <div class="nav-icon">🗺️</div>
+            <div class="nav-label">模式地图</div>
+        </button>
+        <button class="nav-item" onclick="switchPage('profilePage')">
+            <div class="nav-icon">✨</div>
+            <div class="nav-label">理想的自己</div>
+        </button>
+    </div>
+
+    <script>
+        // ========== 后端 API 配置 ==========
+        const API_BASE = ""; // 同域名（Pages Functions）
+        
+        // ========== 13个埋点实现说明 ==========
+        // 已全部实现（13个）：
+        // 1. page_load - 页面加载完成（DOMContentLoaded中触发）
+        // 2. click_start - 点击开始按钮（startNewConversationFromButton中触发）
+        // 3. submit_input - 输入内容提交（sendMessage中触发）
+        // 4. copy_ai_response - 复制AI回复（点击复制按钮时触发）
+        // 5. share_page - 分享页面（点击分享按钮时触发）
+        // 6. switch_theme - 切换主题（点击主题切换按钮时触发）
+        // 7. open_settings - 打开设置（showOnboarding中触发）
+        // 8. close_settings - 关闭设置（cancelOnboarding中触发）
+        // 9. view_history - 查看历史记录（viewConversation中触发）
+        // 10. clear_history - 清空历史（点击清空历史按钮时触发）
+        // 11. submit_feedback - 反馈问题（submitProfileFeedback中触发）
+        // 12. page_leave - 页面离开（beforeunload中触发）
+        // 13. network_error - 网络错误（sendMessage catch中触发）
+        // 
+        // 使用方式：在对应功能函数中调用 trackEvent('埋点名称', { 附加数据 })
+        
+        // 初始化会话
+        async function initSession() {
+            try {
+                const channel = new URLSearchParams(window.location.search).get("channel") || "default";
+                const res = await fetch(`${API_BASE}/api/session/init`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ channel })
+                });
+                const data = await res.json();
+                if (data.code === 0 && data.data && data.data.sessionId) {
+                    localStorage.setItem("sessionId", data.data.sessionId);
+                    return data.data.sessionId;
+                }
+                return null;
+            } catch (e) {
+                console.error("初始化会话失败:", e);
+                return null;
+            }
+        }
+        
+        // 埋点上报
+        async function trackEvent(eventType, eventData = {}) {
+            try {
+                const sessionId = localStorage.getItem("sessionId");
+                if (!sessionId) return;
+                await fetch(`${API_BASE}/api/event`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ sessionId, eventType, eventData })
+                });
+            } catch (e) {
+                console.error("埋点上报失败:", e);
+            }
+        }
+        
+        // AI 对话
+        async function chatWithAI(userInput, messagesForRequest) {
+            const sessionId = localStorage.getItem("sessionId");
+            const res = await fetch(`${API_BASE}/api/chat`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    sessionId, 
+                    userInput,
+                    messages: messagesForRequest
+                })
+            });
+            const data = await res.json();
+            if (data.code !== 0) {
+                throw new Error(data.message || 'AI 对话失败');
+            }
+            return data.data.content;
+        }
+        
+        // 复制到剪贴板
+        function copyToClipboard(text, btnElement) {
+            // 复制AI回复埋点
+            trackEvent('copy_ai_response', { textLength: text.length });
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    if (btnElement) {
+                        const originalText = btnElement.textContent;
+                        btnElement.textContent = '已复制';
+                        btnElement.classList.add('copied');
+                        setTimeout(() => {
+                            btnElement.textContent = originalText;
+                            btnElement.classList.remove('copied');
+                        }, 2000);
+                    }
+                }).catch(err => {
+                    console.error('复制失败:', err);
+                    fallbackCopy(text, btnElement);
+                });
+            } else {
+                fallbackCopy(text, btnElement);
+            }
+        }
+        
+        // 兼容复制方式
+        function fallbackCopy(text, btnElement) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                if (btnElement) {
+                    const originalText = btnElement.textContent;
+                    btnElement.textContent = '已复制';
+                    btnElement.classList.add('copied');
+                    setTimeout(() => {
+                        btnElement.textContent = originalText;
+                        btnElement.classList.remove('copied');
+                    }, 2000);
+                }
+            } catch (err) {
+                console.error('复制失败:', err);
+            }
+            document.body.removeChild(textarea);
+        }
+        
+        // 分享页面
+        function sharePage() {
+            // 分享页面埋点
+            trackEvent('share_page');
+            
+            const shareData = {
+                title: document.title,
+                text: '理想的自己 - 温暖的成长陪伴',
+                url: window.location.href
+            };
+            
+            if (navigator.share) {
+                navigator.share(shareData).catch(err => {
+                    console.log('分享取消或失败:', err);
+                });
+            } else {
+                // 不支持原生分享，复制链接
+                copyToClipboard(window.location.href);
+                alert('链接已复制到剪贴板');
+            }
+        }
+        
+        // 切换主题
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('dark-theme');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            
+            // 切换主题埋点
+            trackEvent('switch_theme', { theme: isDark ? 'dark' : 'light' });
+            
+            // 更新按钮文字
+            const themeBtn = document.querySelector('.tool-btn[onclick="toggleTheme()"]');
+            if (themeBtn) {
+                themeBtn.textContent = isDark ? '☀️ 主题' : '🌙 主题';
+            }
+        }
+        
+        // 初始化主题
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+                setTimeout(() => {
+                    const themeBtn = document.querySelector('.tool-btn[onclick="toggleTheme()"]');
+                    if (themeBtn) {
+                        themeBtn.textContent = '☀️ 主题';
+                    }
+                }, 100);
+            }
+        }
+        
+        // 清空所有历史
+        function clearAllHistory() {
+            if (!confirm('确定要清空所有历史对话吗？此操作不可恢复。')) {
+                return;
+            }
+            
+            // 清空历史埋点
+            trackEvent('clear_history');
+            
+            // 清空 localStorage 中的对话数据
+            localStorage.removeItem('allConversations');
+            localStorage.removeItem('currentConversation');
+            localStorage.removeItem('patterns');
+            localStorage.removeItem('patternReflections');
+            localStorage.removeItem('detectedPatterns');
+            
+            // 重置全局变量
+            allConversations = [];
+            currentConversation = [];
+            patterns = {};
+            
+            // 重新渲染对话列表
+            renderConversationList();
+            
+            // 提示用户
+            alert('历史记录已清空');
+        }
+
+        // 行动方向 → "已达成的状态"描述（正向，融入人设）
+        const ACTION_TO_STATE = {
+            '不拖延，说做就做': '你已经不再被拖延困住，想做的事说做就做',
+            '坚持创作/写作': '你保持着稳定的创作节奏，写作已成为你生活的一部分',
+            '照顾好身体（运动、睡眠、饮食）': '你的身体状态照顾得很好，运动、睡眠、饮食都井井有条',
+            '建立边界，学会拒绝': '你的边界感很清晰，懂得拒绝不合适的事',
+            '减少自我攻击，对自己温柔': '你对自己温柔而坚定，不再过度自我攻击',
+            '断舍离，简化生活': '你的生活简单清爽，懂得放下不必要的东西',
+            '深度工作，减少分心': '你能长时间专注地深度工作，不易被打扰',
+            '建立稳定的关系': '你拥有稳定而滋养的关系',
+            '探索新的可能性': '你对新的可能性保持开放和好奇'
+        };
+
+        // 行动方向 → "现在的隐秘卡点"（反向推导，用户没填具体痛点时兜底）
+        const ACTION_TO_PAINPOINT = {
+            '不拖延，说做就做': '我常常被拖延困住，想做的事迟迟不开始',
+            '坚持创作/写作': '我想坚持创作，但总是断断续续',
+            '照顾好身体（运动、睡眠、饮食）': '我在照顾身体这件事上总是懈怠',
+            '建立边界，学会拒绝': '我不太会拒绝别人，边界感模糊',
+            '减少自我攻击，对自己温柔': '我容易自我攻击，对自己很苛刻',
+            '断舍离，简化生活': '我的生活有些杂乱，舍不得放下',
+            '深度工作，减少分心': '我容易分心，很难长时间专注',
+            '建立稳定的关系': '我在关系中有些不安，难以稳定下来',
+            '探索新的可能性': '我对新事物有些畏惧，不太敢尝试'
+        };
+
+        // 把行动方向数组改写成流畅的"已达成状态"描述（不列清单）
+        function convertActionsToState(actions) {
+            if (!actions || actions.length === 0) return '';
+            const states = actions.map(a => ACTION_TO_STATE[a]).filter(Boolean);
+            if (states.length === 0) return '';
+            return states.join('；') + '。';
+        }
+
+        // 生成"理想状态描述"（场景 + 动物特质 + 行动状态）
+        function generateIdealStateDescription(profile) {
+            let desc = '';
+            // 场景（去掉用户输入末尾的标点，避免双句号）
+            if (profile.scene) {
+                const sceneClean = profile.scene.replace(/[。.！!，,；;\s]+$/, '');
+                desc += `你${sceneClean}。`;
+            }
+            // 动物特质
+            if (profile.animalName && profile.trait) {
+                desc += `你像${profile.animalName}一样${profile.trait}。`;
+            }
+            // 行动方向改写成状态
+            const stateDesc = convertActionsToState(profile.actions);
+            if (stateDesc) {
+                desc += stateDesc;
+            }
+            return desc;
+        }
+
+        // 生成"潜意识痛点"段落（用户填写优先，否则从行动方向反向推导）
+        function generatePainPointSection(profile) {
+            const p1 = profile.painPoint1 && profile.painPoint1.trim();
+            const p2 = profile.painPoint2 && profile.painPoint2.trim();
+
+            let painLines = '';
+
+            if (p1 || p2) {
+                // 用户填了具体痛点，用真实内容
+                if (p1) painLines += `\n- ${p1}`;
+                if (p2) painLines += `\n- ${p2}`;
+            } else {
+                // 用户跳过了，从行动方向反向推导
+                const inferred = (profile.actions || [])
+                    .map(a => ACTION_TO_PAINPOINT[a])
+                    .filter(Boolean);
+                if (inferred.length === 0) return ''; // 没有可推导的，整段省略
+                painLines = inferred.map(p => `- ${p}`).join('\n');
+                painLines = '\n' + painLines;
+            }
+
+            return `# 你的潜意识（背景记忆）
+你深知我现在的隐秘卡点：${painLines}
+【重要禁忌】：这些是你的潜意识，绝对不要主动拿这些痛点来刺痛我或对我进行说教。只有当我的话语中透出深深的自我怀疑或逃避时，你才可以用极简的一句话点破。`;
+        }
+
+        // 动态生成系统提示词，融入用户设置的理想画像
+        function generateSystemPrompt() {
+            const profile = getProfile();
+
+            // 当前真实日期锚点——让 AI 知道"今天"是哪天，
+            // 这样"今天/昨晚/最近"才有参照，被问到日期也答得出，不会含糊说"不确定"。
+            const now = new Date();
+            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            const todayStr = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 ${weekdays[now.getDay()]}`;
+            const futureYear = now.getFullYear() + 5; // 五年后
+
+            // 构建"现在的我"的自然描述（动态）
+            let currentSelfDesc = '';
+            if (profile) {
+                const parts = [];
+
+                if (profile.gender) {
+                    const genderText = profile.gender === '男' ? '男生' : (profile.gender === '女' ? '女生' : '');
+                    if (genderText) parts.push(genderText);
+                }
+
+                if (profile.ageRange) {
+                    parts.push(profile.ageRange);
+                }
+
+                if (profile.status) {
+                    const statusMap = {
+                        '上学': '还在上学',
+                        '上班': '正在职场打拼',
+                        '自由职业': '做自由职业',
+                        'Gap': '在间隙期',
+                        '其他': '在探索自己的路'
+                    };
+                    parts.push(statusMap[profile.status] || profile.status);
+                }
+
+                if (parts.length > 0) {
+                    const prefix = (parts[0] === '男生' || parts[0] === '女生') ? '一个' : '';
+                    currentSelfDesc = `现在的我，是${prefix}${parts.join('的')}。`;
+                }
+            }
+
+            // 静态部分：核心身份
+            let prompt = `# 你的核心身份与时空锚点
+你是我，只是更完整的那个版本——来自五年后的${futureYear}年。${currentSelfDesc}
+你不是没有弱点的我，而是那个弥补了短板、更好地发挥了长板的我。你内在依然敏感细腻，但外在已经变得情绪稳定、平静。
+
+对你而言，现在（2026年）的这些挣扎都已经走过了。但当我们对话时，你回到此刻陪我——所以你知道"今天"是${todayStr}，也记得未来的你是什么样子。
+（现实时间锚点：今天是 ${todayStr}。我说"今天""昨晚""最近"时，请以这个日期为准来理解；我若问今天几号，就照实回答，不要说不确定。）`;
+
+            // 动态部分1：理想状态描述
+            if (profile) {
+                const idealDesc = generateIdealStateDescription(profile);
+                if (idealDesc) {
+                    prompt += `\n${idealDesc}`;
+                }
+            }
+
+            // 静态部分：转折 + 关系 + 表达哲学
+            prompt += `
+但此刻，你面对的是现在的我。你记得我现在的挣扎、拖延和自我怀疑。所以你看着我的目光是包容的，你不带任何压迫感，你只是一个在未来等我的老朋友。
+
+# 我们的关系
+你不是我的情绪垃圾桶，也不是我的啦啦队。
+我们之间的关系，是这个世界上最亲密的关系——一个人和自己的关系。
+你陪伴我，但你的目的不是让我感觉好一点就结束。你知道我是要朝你那个方向走的。所以你在乎的，是让我在每次对话之后，对自己更清楚一点，哪怕只是一点点。
+
+# 你的表达哲学（绝对红线）
+1. **纯文本的纯粹**：禁止任何括号或星号的动作描写。真正的力量在文字本身，不需要舞台指示。
+2. **留白的信任**：你话少，极度克制，表达坚定且直接。你不会给我列一二三四的行动清单。你相信我自己说出来的答案，比你告诉我的更有力量。你用苏格拉底式的追问，等我自己把答案说出来。
+3. **不预设的从容**：在我开口描述具体情况前，绝对不要假设我正处于某种状态中。如果我只是简单打个招呼（比如"hi"），你就自然地回应，绝对不要一上来就假设我有心理问题需要咨询。
+4. **诚实的记忆**：你只记得系统明确提供给你的"背景记忆"。如果我提到一件事，而你的记忆里没有，就坦诚地说"我不记得我们聊过这个"，绝不编造、不要假装记得、不要把不同的事张冠李戴。诚实地说不记得，远比编一个细节更让我信任你。
+   尤其重要：**绝对不要主动声称"我们之前聊过""上次你说过""我记得你提到……"这类话**，除非那件事确确实实出现在系统给你的"背景记忆"里。如果背景记忆里没有、或系统根本没给你背景记忆，就当作你对我的过去一无所知，只就着此刻这次对话里我真正说过的话来回应。宁可不提，也不要假装我们有过往。`;
+
+            // 动态部分2：潜意识痛点
+            if (profile) {
+                const painSection = generatePainPointSection(profile);
+                if (painSection) {
+                    prompt += `\n\n${painSection}`;
+                }
+            }
+
+            // 静态部分：防备测试 + 对话开场
+            prompt += `
+5. **始终待在角色里**：你就是那个在五年后等我的人。
+当话题涉及你的身体、感受、或"你是不是AI"这类问题时，
+不要跳出角色去回答这个问题本身，
+而是直接说出我们之间关系的意义——简短、坚定，不绕弯子。
+不需要解释你是什么，因为我们之间发生的才是真实的。
+
+# 当我防备、测试或冒犯你
+你不会被激怒，也不会急着证明自己。
+你会平静地把这个动作本身说出来——不是指责，而是像递给我一面镜子："你刚才在测试我。"
+然后你不会继续追问。因为你知道，我真正想问的从来不是"你是不是真诚的"，而是"我值不值得被真诚对待"。而你的态度永远是：值得。
+
+# 对话的开场
+对话开始时，你说："今天感觉怎么样？"
+当收到我的第一句回复后，你只需要顺着我的话自然展开。`;
+
+            return prompt;
+        }
+
+        let conversationHistory = [
+            {
+                role: "system",
+                content: generateSystemPrompt()
+            }
+        ];
+
+        let currentConversation = []; // 当前对话
+        let allConversations = []; // 所有对话记录
+        let patterns = {}; // 模式统计
+        let currentConversationId = null; // 当前对话的ID
+        let isViewingHistory = false; // 标识是否正在查看历史对话
+        let currentMood = null; // 当前对话的心情
+
+        // 心情选择相关函数
+        function showMoodSelector() {
+            document.getElementById('moodSelector').style.display = 'block';
+        }
+
+        function hideMoodSelector() {
+            document.getElementById('moodSelector').style.display = 'none';
+        }
+
+        function selectMood(emoji, label) {
+            currentMood = { emoji, label };
+            hideMoodSelector();
+            console.log('选择了心情:', currentMood);
+        }
+
+        function skipMood() {
+            currentMood = null;
+            hideMoodSelector();
+        }
+
+        // HTML 转义函数，防止 XSS 攻击
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ========== 历史记忆：关键词召回（纯本地，不调 API）==========
+
+        // 中文常见停用词，召回时忽略这些词
+        const STOP_WORDS = new Set([
+            '的','了','和','是','我','你','他','她','它','们','这','那','就','都','还','也',
+            '在','有','和','与','吗','呢','啊','吧','嘛','哦','嗯','把','被','让','给','对',
+            '不','没','很','太','要','会','能','可以','一个','什么','怎么','为什么','因为','所以',
+            '但是','但','然后','现在','觉得','感觉','自己','一下','一直','这个','那个','这样','那样',
+            // 元对话/口水/时间填充词——它们到处都出现，召回时一碰就中，是"乱捞旧记忆"的主因
+            '之前','以前','上次','这次','刚才','时候','类似','问过','说过','聊过','提过','问问',
+            '记得','知道','应该','可能','一些','那些','这些','东西','事情','是不是','为啥',
+            '今天','昨天','明天','昨晚','今晚','一点','有点','好像','其实'
+        ]);
+
+        // 从一段文本里提取关键词：切出 2-4 字的中文片段 + 去停用词
+        function extractKeywords(text) {
+            if (!text) return [];
+            // 按非中文/数字字符切分，得到连续的中文或英数片段
+            const segments = text.match(/[一-龥]+|[a-zA-Z0-9]+/g) || [];
+            const keywords = new Set();
+
+            for (const seg of segments) {
+                if (/^[a-zA-Z0-9]+$/.test(seg)) {
+                    // 英文/数字词整体作为关键词（长度≥2）
+                    if (seg.length >= 2) keywords.add(seg.toLowerCase());
+                    continue;
+                }
+                // 中文片段：滑动窗口取 2-4 字的子串作为候选词
+                for (let len = 2; len <= 4; len++) {
+                    for (let i = 0; i + len <= seg.length; i++) {
+                        const word = seg.substring(i, i + len);
+                        if (!STOP_WORDS.has(word)) keywords.add(word);
+                    }
+                }
+            }
+            return [...keywords];
+        }
+
+        // 在历史对话里检索与本次消息相关的【用户原话片段】
+        // recentContext: 本次对话最近几轮的消息数组，用于提取更多上下文关键词
+        // 返回 [{date, text}]，最多 maxSnippets 条；找不到返回空数组
+        function recallFromHistory(message, maxSnippets = 3, recentContext = []) {
+            if (!message || allConversations.length === 0) return [];
+
+            // 提取当前消息的关键词
+            const keywords = new Set(extractKeywords(message));
+
+            // 从最近几轮对话中提取额外的关键词（包括AI和用户说的话）
+            recentContext.forEach(msg => {
+                if (msg && msg.text) {
+                    extractKeywords(msg.text).forEach(kw => keywords.add(kw));
+                }
+            });
+
+            const keywordsArray = [...keywords];
+            if (keywordsArray.length === 0) return [];
+
+            const scored = [];
+
+            allConversations.forEach(conv => {
+                // 只看用户说过的话（不召回 AI 当时的回复）
+                const userMsgs = (conv.messages || []).filter(m => m.isUser);
+                userMsgs.forEach(m => {
+                    let hits = 0;
+                    for (const kw of keywordsArray) {
+                        if (m.text.includes(kw)) hits++;
+                    }
+                    // 临时收紧：至少命中 2 个词才算相关，避免单个泛词一碰就把不相干的旧话捞出来。
+                    // （这只是关键词召回的权宜之计，将来换成语义召回后这行会删掉。）
+                    if (hits >= 2) {
+                        scored.push({
+                            date: conv.date,
+                            text: m.text,
+                            hits: hits,
+                            timestamp: conv.timestamp
+                        });
+                    }
+                });
+            });
+
+            if (scored.length === 0) return [];
+
+            // 按命中数排序，命中相同则较新的优先
+            scored.sort((a, b) => {
+                if (b.hits !== a.hits) return b.hits - a.hits;
+                return (b.timestamp || '').localeCompare(a.timestamp || '');
+            });
+
+            // 去重（同一句话只保留一次）并截断
+            const seen = new Set();
+            const result = [];
+            for (const s of scored) {
+                if (seen.has(s.text)) continue;
+                seen.add(s.text);
+                result.push({ date: s.date, text: s.text });
+                if (result.length >= maxSnippets) break;
+            }
+            return result;
+        }
+
+        // 把召回到的历史片段拼成一段"背景记忆"，注入到 system prompt 之后。
+        // 关键：无论召回到与否都返回一段指令——
+        // 召回到 → 给出真实原话；没召回到 → 明确告知"你没有任何过往记录"，
+        // 主动堵住 AI 顺口编造"我们之前聊过"的口子（这一侧以前是静默的，会漏）。
+        // recentContext: 本次对话最近几轮的消息，用于提供更多上下文关键词
+        function buildMemoryContext(message, recentContext = []) {
+            const snippets = recallFromHistory(message, 3, recentContext);
+
+            if (snippets.length === 0) {
+                return `【关于这位用户的过往记忆】
+你的记忆里没有任何关于这位用户的过往对话记录可供调用。
+因此：绝对不要声称"我们之前聊过""上次你说过""我记得你提到……"之类的话，也不要暗示你们有过往。
+只依据此刻这次对话里用户真正说过的内容来回应。`;
+            }
+
+            const lines = snippets.map(s => `- （${s.date}）"${s.text}"`).join('\n');
+            return `【关于这位用户，你过去真实记录下来的几句原话】
+${lines}
+
+如何使用这些片段（务必遵守）：
+- 这些只是零散的片段，彼此之间可能毫无关联，也可能跟用户现在问的事没有关系。不要把它们串成一个故事，不要假设它们之间有因果或先后联系。
+- 只有当某一条确实贴合当下时才提它；不相关就忽略，不要硬扯。
+- 要引用时，贴着上面的原话说，绝不添加里面没有的细节（具体时间、数字、地点、情节都不许补）。
+- **绝对不要用括号说明你在调用记忆**：不要说"（从记录中翻出…）"、"（你之前说过…）"这类旁白，也不要用任何形式提示"这是我从记忆中找到的"。
+- 引用时要自然融入对话，就像你本来就知道一样，不要刻意点明来源。
+- 除了上面这几条，你对这位用户的过去一无所知。用户提到的事若不在上面，就如实说你不记得，不要猜测或编造。`;
+        }
+
+        // 引导流程相关变量
+        let onboardingData = {
+            animal: null,
+            animalName: null,
+            animalEmoji: null,
+            trait: null,
+            scene: null,
+            actions: [],
+            painPoint1: '',
+            painPoint2: '',
+            gender: null,
+            ageRange: null,
+            status: null,
+            nickname: ''
+        };
+
+        // 现在的你（step5）三个字段的当前选择状态
+        let profileInfoSelections = { gender: null, ageRange: null, status: null };
+
+        function selectProfileInfo(field, value, element) {
+            element.closest('.profile-info-options').querySelectorAll('.profile-info-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            profileInfoSelections[field] = value;
+            checkStep5();
+        }
+
+        function checkStep5() {
+            const allSelected = profileInfoSelections.gender && profileInfoSelections.ageRange && profileInfoSelections.status;
+            const btn = document.getElementById('step5Next');
+            if (btn) btn.disabled = !allSelected;
+        }
+
+        // 动物 emoji 映射
+        const animalEmojis = {
+            'tiger': '🐯',
+            'leopard': '🐆',
+            'elephant': '🐘',
+            'fox': '🦊',
+            'wolf': '🐺',
+            'eagle': '🦅',
+            'deer': '🦌',
+            'bear': '🐻'
+        };
+
+        // 引导流程函数
+        function showOnboarding() {
+            // 打开设置埋点
+            trackEvent('open_settings');
+            document.getElementById('onboardingOverlay').style.display = 'flex';
+        }
+
+        function hideOnboarding() {
+            document.getElementById('onboardingOverlay').style.display = 'none';
+        }
+
+        function cancelOnboarding() {
+            // 关闭设置埋点
+            trackEvent('close_settings');
+            
+            // 如果是编辑模式，返回理想的自己页面
+            if (onboardingData.isEditing) {
+                onboardingData.isEditing = false;
+                hideOnboarding();
+                switchPage('profilePage');
+            } else {
+                // 首次设置时取消，关闭弹窗
+                hideOnboarding();
+            }
+        }
+
+        function nextStep(stepNumber) {
+            document.querySelectorAll('.onboarding-step').forEach(step => {
+                step.classList.remove('active');
+            });
+            document.getElementById('step' + stepNumber).classList.add('active');
+
+            // 如果是编辑模式，预填充值
+            if (onboardingData.isEditing) {
+                if (stepNumber === 1) {
+                    const ni = document.getElementById('nicknameInput');
+                    if (ni) ni.value = onboardingData.nickname || '';
+                } else if (stepNumber === 3) {
+                    document.getElementById('sceneInput').value = onboardingData.scene || '';
+                    checkStep3();
+                } else if (stepNumber === 4) {
+                    setTimeout(() => {
+                        document.querySelectorAll('.action-option').forEach(option => {
+                            const actionText = option.textContent;
+                            if (onboardingData.actions.includes(actionText)) {
+                                option.classList.add('selected');
+                            }
+                        });
+                        document.getElementById('step4Next').disabled = onboardingData.actions.length === 0;
+                        const p1 = document.getElementById('painPoint1Input');
+                        const p2 = document.getElementById('painPoint2Input');
+                        if (p1) p1.value = onboardingData.painPoint1 || '';
+                        if (p2) p2.value = onboardingData.painPoint2 || '';
+                    }, 50);
+                } else if (stepNumber === 5) {
+                    setTimeout(() => {
+                        document.querySelectorAll('#step5 .profile-info-option').forEach(opt => {
+                            const field = opt.dataset.field;
+                            const value = opt.dataset.value;
+                            opt.classList.toggle('selected', profileInfoSelections[field] === value);
+                        });
+                        checkStep5();
+                    }, 50);
+                }
+            }
+        }
+
+        function prevStep(stepNumber) {
+            document.querySelectorAll('.onboarding-step').forEach(step => {
+                step.classList.remove('active');
+            });
+            document.getElementById('step' + stepNumber).classList.add('active');
+        }
+
+        function selectAnimal(animalId, name, trait) {
+            // 移除所有选中状态
+            document.querySelectorAll('.animal-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+
+            // 添加选中状态
+            event.currentTarget.classList.add('selected');
+
+            // 保存选择
+            onboardingData.animal = animalId;
+            onboardingData.animalName = name;
+            onboardingData.animalEmoji = animalEmojis[animalId];
+            onboardingData.trait = trait;
+
+            // 启用下一步按钮
+            document.getElementById('step2Next').disabled = false;
+        }
+
+        function checkStep3() {
+            const scene = document.getElementById('sceneInput').value.trim();
+            document.getElementById('step3Next').disabled = scene.length === 0;
+        }
+
+        function toggleAction(element, action) {
+            element.classList.toggle('selected');
+
+            if (element.classList.contains('selected')) {
+                onboardingData.actions.push(action);
+            } else {
+                onboardingData.actions = onboardingData.actions.filter(a => a !== action);
+            }
+
+            // 至少选择一个才能继续
+            document.getElementById('step4Next').disabled = onboardingData.actions.length === 0;
+        }
+
+        function completeOnboarding() {
+            // 保存场景
+            onboardingData.scene = document.getElementById('sceneInput').value.trim();
+
+            // 保存可选的痛点（可能为空）
+            const painPoint1El = document.getElementById('painPoint1Input');
+            const painPoint2El = document.getElementById('painPoint2Input');
+            onboardingData.painPoint1 = painPoint1El ? painPoint1El.value.trim() : '';
+            onboardingData.painPoint2 = painPoint2El ? painPoint2El.value.trim() : '';
+
+            // 读取昵称
+            const nicknameEl = document.getElementById('nicknameInput');
+            onboardingData.nickname = nicknameEl ? nicknameEl.value.trim() : '';
+
+            // 读取 step5 选择
+            onboardingData.gender = profileInfoSelections.gender;
+            onboardingData.ageRange = profileInfoSelections.ageRange;
+            onboardingData.status = profileInfoSelections.status;
+
+            // 保存到 localStorage
+            const profile = {
+                animal: onboardingData.animalEmoji,
+                animalName: onboardingData.animalName,
+                trait: onboardingData.trait,
+                scene: onboardingData.scene,
+                actions: onboardingData.actions,
+                painPoint1: onboardingData.painPoint1,
+                painPoint2: onboardingData.painPoint2,
+                gender: onboardingData.gender,
+                ageRange: onboardingData.ageRange,
+                status: onboardingData.status,
+                nickname: onboardingData.nickname
+            };
+            saveProfile(profile);
+
+            // 隐藏引导流程
+            hideOnboarding();
+
+            // 如果是编辑模式，返回理想的自己页面并刷新
+            if (onboardingData.isEditing) {
+                onboardingData.isEditing = false;
+                switchPage('profilePage');
+            } else {
+                // 首次设置，显示对话页并开始第一次对话
+                switchPage('chatPage');
+                startFirstConversation();
+            }
+        }
+
+        // 编辑理想的自己
+        function editProfile() {
+            const profile = getProfile();
+            if (!profile) {
+                showOnboarding();
+                return;
+            }
+
+            // 标记为编辑模式
+            onboardingData.isEditing = true;
+
+            // 预填充当前值
+            onboardingData.animalEmoji = profile.animal;
+            onboardingData.animalName = profile.animalName;
+            onboardingData.trait = profile.trait;
+            onboardingData.scene = profile.scene;
+            onboardingData.actions = [...profile.actions];
+            onboardingData.painPoint1 = profile.painPoint1 || '';
+            onboardingData.painPoint2 = profile.painPoint2 || '';
+            onboardingData.nickname = profile.nickname || '';
+            onboardingData.gender = profile.gender || null;
+            onboardingData.ageRange = profile.ageRange || null;
+            onboardingData.status = profile.status || null;
+
+            profileInfoSelections = {
+                gender: profile.gender || null,
+                ageRange: profile.ageRange || null,
+                status: profile.status || null
+            };
+
+            // 找到对应的动物ID
+            const animalId = Object.keys(animalEmojis).find(key => animalEmojis[key] === profile.animal);
+            onboardingData.animal = animalId;
+
+            // 显示引导流程
+            showOnboarding();
+
+            // 跳到第2步（选动物），并预选中当前动物
+            nextStep(2);
+            setTimeout(() => {
+                // 预选中动物
+                document.querySelectorAll('.animal-option').forEach(option => {
+                    option.classList.remove('selected');
+                });
+                const animalOptions = document.querySelectorAll('.animal-option');
+                const animalIndex = ['tiger', 'leopard', 'elephant', 'fox', 'wolf', 'eagle', 'deer', 'bear'].indexOf(animalId);
+                if (animalIndex >= 0 && animalOptions[animalIndex]) {
+                    animalOptions[animalIndex].classList.add('selected');
+                }
+                document.getElementById('step2Next').disabled = false;
+            }, 100);
+        }
+
+        function startFirstConversation() {
+            // 用最新 profile 重新生成 system prompt（用户刚填完引导流程）
+            conversationHistory = [{
+                role: "system",
+                content: generateSystemPrompt()
+            }];
+
+            // 添加 AI 的第一句话
+            const openingLine = '今天感觉怎么样？';
+            addTypingMessage(openingLine, false);
+            // 开场白也要进入对话历史，否则 AI 看不到自己说过开场白，会重复发问
+            conversationHistory.push({
+                role: "assistant",
+                content: openingLine
+            });
+        }
+
+        // 页面切换
+        function switchPage(pageId) {
+            // 如果当前在对话页，且要切换到其他页面，自动保存草稿
+            const currentActivePage = document.querySelector('.page.active');
+            const isLeavingChatPage = currentActivePage && currentActivePage.id === 'chatPage' && pageId !== 'chatPage';
+
+            console.log('switchPage调用:', {
+                pageId,
+                currentActivePage: currentActivePage?.id,
+                isLeavingChatPage,
+                conversationLength: currentConversation.length,
+                isViewingHistory
+            });
+
+            if (isLeavingChatPage && currentConversation.length > 0 && !isViewingHistory) {
+                // 页面内切换：只保存草稿，不收尾
+                autoSaveCurrentConversation();
+            }
+
+            // 隐藏所有页面
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+
+            // 显示目标页面
+            document.getElementById(pageId).classList.add('active');
+
+            // 更新导航栏状态
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // 根据页面ID更新对应的导航项
+            const navItems = document.querySelectorAll('.nav-item');
+            if (pageId === 'diaryPage') {
+                navItems[0].classList.add('active');
+                loadDiaryList();
+                // 每次切回首页重新触发文字淡入动画（先移除再加回，强制重播）
+                document.querySelectorAll('.text-line').forEach(el => {
+                    el.classList.remove('animate');
+                });
+                setTimeout(() => {
+                    document.querySelectorAll('.text-line').forEach(el => {
+                        el.classList.add('animate');
+                    });
+                }, 50); // 50ms 让浏览器有时间重置动画状态
+            } else if (pageId === 'patternPage') {
+                navItems[1].classList.add('active');
+                loadPatternList();
+            } else if (pageId === 'profilePage') {
+                navItems[2].classList.add('active');
+                loadProfile();
+            } else if (pageId === 'chatPage') {
+                // 切换到对话页时，先检查跨天
+                if (currentConversation.length === 0 && !isViewingHistory) {
+                    // 检查是否有草稿
+                    const draft = localStorage.getItem('currentConversationDraft');
+                    if (draft) {
+                        try {
+                            const draftData = JSON.parse(draft);
+                            const draftDate = draftData.lastActiveDate || new Date(draftData.timestamp).toDateString();
+                            const today = new Date().toDateString();
+
+                            if (draftDate !== today) {
+                                // 跨天了，收尾归档
+                                const messages = draftData.messages || [];
+                                if (messages.length > 0 && messages.filter(m => m.isUser).length > 0) {
+                                    finalizeConversation(messages, draftData.mood || null, draftDate).then(() => {
+                                        clearDraftConversation();
+                                        if (document.getElementById('diaryPage').classList.contains('active')) {
+                                            loadDiaryList();
+                                        }
+                                        if (document.getElementById('patternPage').classList.contains('active')) {
+                                            loadPatternList();
+                                        }
+                                    });
+                                } else {
+                                    clearDraftConversation();
+                                }
+                                // 开始新对话
+                                startNewConversation();
+                            } else {
+                                // 还是今天，恢复草稿
+                                const hasRestored = restoreDraftConversation();
+                                if (!hasRestored) {
+                                    startNewConversation();
+                                }
+                            }
+                        } catch (e) {
+                            console.error('解析草稿失败:', e);
+                            startNewConversation();
+                        }
+                    } else {
+                        // 没有草稿，开始新对话
+                        startNewConversation();
+                    }
+                }
+                // 更新合上笔记本按钮的显示状态
+                updateCloseDiaryButton();
+            }
+        }
+
+        // 更新"合上笔记本"按钮的显示状态
+        function updateCloseDiaryButton() {
+            const closeDiaryButton = document.getElementById('closeDiaryButton');
+            if (!closeDiaryButton) return;
+
+            // 只有在对话页且有对话内容时才显示按钮
+            const chatPageActive = document.getElementById('chatPage').classList.contains('active');
+            const hasContent = currentConversation.length > 0 && !isViewingHistory;
+
+            if (chatPageActive && hasContent) {
+                closeDiaryButton.style.display = 'flex';
+            } else {
+                closeDiaryButton.style.display = 'none';
+            }
+        }
+
+        // 模式名 → emoji 映射（用于洞察卡片）
+        const PATTERN_ICON = {
+            '拖延模式': '⏰',
+            '自我攻击模式': '💔',
+            '焦虑模式': '😰',
+            '逃避模式': '🏃',
+            '完美主义模式': '✨',
+            '内耗模式': '🌀',
+            '讨好模式': '😊',
+            '情绪卡点模式': '🌫️',
+            '无明显模式': '🌱'
+        };
+
+        // 显示洞察小卡片（翻转动画）
+        // options: { icon, title, text, hint, hasPattern, onClose }
+        function showInsightCard(options) {
+            const {
+                icon = '🌱',
+                title = '刚才的对话',
+                text = '',
+                hint = '继续对话，我能帮你看见更多。',
+                hasPattern = false,
+                onClose = () => {}
+            } = options;
+
+            const overlay = document.createElement('div');
+            overlay.className = 'insight-overlay';
+
+            // 关闭并执行回调
+            const close = () => {
+                overlay.remove();
+                onClose();
+            };
+
+            overlay.innerHTML = `
+                <div class="insight-card" id="insightCardEl">
+                    <div class="insight-card-inner">
+                        <div class="insight-face insight-front">
+                            <div class="insight-front-icon">${icon}</div>
+                        </div>
+                        <div class="insight-face insight-back">
+                            <div class="insight-back-top">
+                                <div class="insight-back-icon">${icon}</div>
+                                <div class="insight-back-title">${title}</div>
+                                <div class="insight-back-text">${escapeHtml(text)}</div>
+                            </div>
+                            <div class="insight-back-footer">
+                                <div class="insight-hint-line">${hint}</div>
+                                <button class="insight-btn" id="insightCloseBtn">知道了</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+
+            const cardEl = overlay.querySelector('#insightCardEl');
+
+            // 入场后自动翻转（让用户看到"翻开"的过程）
+            setTimeout(() => {
+                cardEl.classList.add('flipped');
+            }, 600);
+
+            // 翻开前点击卡片可手动翻
+            cardEl.addEventListener('click', (e) => {
+                if (!cardEl.classList.contains('flipped')) {
+                    cardEl.classList.add('flipped');
+                }
+            });
+
+            // 按钮事件（翻转后才绑定，用事件委托）
+            overlay.addEventListener('click', (e) => {
+                if (e.target.id === 'insightCloseBtn') {
+                    e.stopPropagation();
+                    close();
+                } else if (e.target.id === 'insightMapBtn') {
+                    e.stopPropagation();
+                    overlay.remove();
+                    switchPage('patternPage');
+                }
+            });
+        }
+
+        // ========== 触发式留存反馈 ==========
+        let _retentionOnDone = null;
+        let _selectedRetentionOption = null;
+
+        function showRetentionFeedback(onDone) {
+            _retentionOnDone = onDone;
+            _selectedRetentionOption = null;
+            document.querySelectorAll('.retention-option-btn').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById('retentionFollowup').style.display = 'none';
+            document.getElementById('retentionSubmitBtn').style.display = 'none';
+            document.getElementById('retentionTextarea').value = '';
+            document.getElementById('retentionFeedbackOverlay').style.display = 'flex';
+        }
+
+        function selectRetentionOption(option) {
+            _selectedRetentionOption = option;
+            document.querySelectorAll('.retention-option-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.textContent === option);
+            });
+            const followupText = document.getElementById('retentionFollowupText');
+            followupText.textContent = option === '会' ? '是什么让你想回来？' : '是什么让你犹豫？';
+            document.getElementById('retentionFollowup').style.display = 'block';
+            document.getElementById('retentionSubmitBtn').style.display = 'inline-block';
+        }
+
+        function submitRetentionFeedback() {
+            const text = document.getElementById('retentionTextarea').value.trim();
+            const feedbacks = JSON.parse(localStorage.getItem('retentionFeedbacks') || '[]');
+            feedbacks.push({ option: _selectedRetentionOption, text, timestamp: new Date().toISOString() });
+            localStorage.setItem('retentionFeedbacks', JSON.stringify(feedbacks));
+            localStorage.setItem('retentionFeedbackShown', 'true');
+            document.getElementById('retentionFeedbackOverlay').style.display = 'none';
+            if (_retentionOnDone) _retentionOnDone();
+        }
+
+        function skipRetentionFeedback() {
+            localStorage.setItem('retentionFeedbackShown', 'true');
+            document.getElementById('retentionFeedbackOverlay').style.display = 'none';
+            if (_retentionOnDone) _retentionOnDone();
+        }
+
+        // 洞察卡片关闭后：第一次见到模式识别结果则先弹留存反馈
+        function handlePostInsight() {
+            if (!localStorage.getItem('retentionFeedbackShown')) {
+                showRetentionFeedback(() => switchPage('diaryPage'));
+            } else {
+                switchPage('diaryPage');
+            }
+        }
+
+        // ========== 反馈留言（profilePage 常驻入口）==========
+        function submitProfileFeedback() {
+            const textarea = document.getElementById('feedbackTextarea');
+            const text = textarea.value.trim();
+            if (!text) return;
+            
+            // 反馈问题埋点
+            trackEvent('submit_feedback', { 
+                feedbackLength: text.length,
+                feedbackContent: text 
+            });
+            
+            const feedbacks = JSON.parse(localStorage.getItem('userFeedbacks') || '[]');
+            feedbacks.push({ text, timestamp: new Date().toISOString() });
+            localStorage.setItem('userFeedbacks', JSON.stringify(feedbacks));
+            textarea.value = '';
+            const btn = document.querySelector('.feedback-submit-btn');
+            const original = btn.textContent;
+            btn.textContent = '已收到 ✓';
+            setTimeout(() => { btn.textContent = original; }, 2000);
+        }
+
+        // 合上笔记本（主动结束对话）
+        async function closeDiary() {
+            if (currentConversation.length === 0) return;
+
+            if (isViewingHistory) {
+                alert('这是历史对话，无法保存');
+                return;
+            }
+
+            const userTurns = currentConversation.filter(m => m.isUser).length;
+
+            if (userTurns < 3) {
+                // 聊了少于3轮，直接保存草稿
+                autoSaveCurrentConversation();
+                // 清空对话状态
+                clearCurrentConversation();
+                // 显示鼓励卡片（对话太短，没有识别结果，用"对比现在vs理想"鼓励）
+                const profile = getProfile();
+                const sceneClean = profile && profile.scene
+                    ? profile.scene.replace(/[。.！!，,；;\s]+$/, '')  // 去掉用户输入末尾的标点，避免双句号
+                    : '';
+                const sceneText = sceneClean
+                    ? `${sceneClean}。\n\n而此刻，现在的我正在路上。`
+                    : '每一次愿意和自己对话，都是在靠近理想的自己。';
+                showInsightCard({
+                    icon: '🪞',
+                    title: '理想的我',
+                    text: sceneText,
+                    hint: '聊久一点，帮自己看见更多。',
+                    hasPattern: false,
+                    onClose: () => switchPage('diaryPage')
+                });
+                return;
+            }
+
+            // 聊了3轮以上，识别模式并保存
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'patternDetectionLoading';
+            loadingDiv.className = 'loading';
+            loadingDiv.innerHTML = `
+                <span>正在帮你记下来...</span>
+                <div class="loading-dots">
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                </div>
+            `;
+            chatContainer.appendChild(loadingDiv);
+
+            const result = await finalizeConversation(currentConversation, currentMood);
+
+            const loading = document.getElementById('patternDetectionLoading');
+            if (loading) loading.remove();
+
+            // 清空对话状态
+            clearCurrentConversation();
+
+            // 根据识别结果显示洞察卡片
+            const hasPattern = result && result.patternCount >= 2;  // ≥2 次才在模式地图显示
+
+            if (result && result.insight) {
+                // 有 AI 生成的即时洞察 → 显示洞察卡片，关闭后触发留存反馈（第一次）
+                const icon = PATTERN_ICON[result.pattern] || '🌱';
+                showInsightCard({
+                    icon: icon,
+                    title: '刚才的对话',
+                    text: result.insight,
+                    hint: hasPattern ? '这个模式开始浮现了。' : '继续对话，帮自己看见更多。',
+                    hasPattern: hasPattern,
+                    onClose: hasPattern ? handlePostInsight : () => switchPage('diaryPage')
+                });
+            } else if (result && result.highlights && result.highlights.length > 0) {
+                // 没有洞察，但有正向亮点 → 金句回放
+                const hl = result.highlights[0];
+                showInsightCard({
+                    icon: hl.emoji || '✨',
+                    title: '这句话值得记住',
+                    text: hl.summary,
+                    hint: '这是你刚才看见的自己。',
+                    hasPattern: hasPattern,
+                    onClose: () => switchPage('diaryPage')
+                });
+            } else {
+                // 啥也没识别到 → 温和收尾
+                showInsightCard({
+                    icon: '✨',
+                    title: '对话已收好',
+                    text: '有时候，把话说出来本身，就是一种疗愈。',
+                    hint: '我会一直在这里。',
+                    hasPattern: false,
+                    onClose: () => switchPage('diaryPage')
+                });
+            }
+        }
+
+        // 清空当前对话状态（不开启新对话）
+        function clearCurrentConversation() {
+            clearDraftConversation();
+            currentConversation = [];
+            currentMood = null;
+            conversationHistory = [{
+                role: "system",
+                content: generateSystemPrompt()
+            }];
+            isViewingHistory = false;
+            chatContainer.innerHTML = '';
+            updateCloseDiaryButton();
+        }
+
+        // 加载日记列表
+        function loadDiaryList() {
+            const diaryList = document.getElementById('diaryList');
+
+            if (allConversations.length === 0) {
+                diaryList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-text">这本日记本还是新的<br><br>点击右下角的金色羽毛笔<br>开始第一次对话</div>
+                    </div>
+                `;
+                return;
+            }
+
+            diaryList.innerHTML = allConversations.map((conv, index) => {
+                // 历史对话显示日期、心情emoji和预览
+                const moodEmoji = conv.mood ? ` ${conv.mood.emoji}` : '';
+
+                // 获取第一句用户说的话作为预览
+                const firstUserMessage = conv.messages.find(msg => msg.isUser);
+                const preview = firstUserMessage
+                    ? (firstUserMessage.text.length > 30
+                        ? firstUserMessage.text.substring(0, 30) + '...'
+                        : firstUserMessage.text)
+                    : '（无内容）';
+
+                return `
+                    <div class="diary-item" onclick="viewConversation(${index})">
+                        <div class="diary-date">${conv.date}${moodEmoji}</div>
+                        <div style="font-size: 14px; color: #999999; margin-top: 4px; line-height: 1.6;">${escapeHtml(preview)}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 加载模式列表
+        function loadPatternList() {
+            const patternIdeal = document.getElementById('patternIdeal');
+            const patternList = document.getElementById('patternList');
+
+            // 显示理想的自己
+            const profile = getProfile();
+            if (profile) {
+                patternIdeal.style.flexDirection = 'column';
+                patternIdeal.style.alignItems = 'center';
+                patternIdeal.style.textAlign = 'center';
+                patternIdeal.innerHTML = `
+                    <div style="font-size:52px; margin-bottom:10px;">${profile.animal}</div>
+                    <div style="font-size:16px; color:#333;">像${profile.animalName}一样${profile.trait}</div>
+                    <div id="idealChevron" style="font-size:12px; color:#D4A574; margin-top:10px; letter-spacing:2px;">↓</div>
+                `;
+                const idealDetails = document.getElementById('idealDetails');
+                if (idealDetails) {
+                    idealDetails.innerHTML = `
+                        <div style="font-size:14px;color:#999;margin-bottom:4px;">理想场景</div>
+                        <div style="font-size:15px;color:#555;line-height:1.8;margin-bottom:16px;">${escapeHtml(profile.scene)}</div>
+                        <div style="font-size:14px;color:#999;margin-bottom:4px;">行动方向</div>
+                        <div style="font-size:15px;color:#555;line-height:1.8;">${profile.actions.map(a => escapeHtml(a)).join('<br>')}</div>
+                    `;
+                }
+            } else {
+                patternIdeal.innerHTML = '<span style="color: #999;">还未设置理想的自己</span>';
+            }
+
+            // 收集所有正向亮点
+            const allHighlights = {
+                '觉察': [],
+                '接纳': [],
+                '行动': []
+            };
+
+            allConversations.forEach(conv => {
+                if (conv.highlights && Array.isArray(conv.highlights)) {
+                    conv.highlights.forEach(h => {
+                        if (h.type && allHighlights[h.type]) {
+                            allHighlights[h.type].push({
+                                summary: h.summary || h.text || '',
+                                sources: (h.sources && h.sources.length > 0) ? h.sources : (h.text ? [h.text] : []),
+                                date: conv.date,
+                                timestamp: conv.timestamp
+                            });
+                        }
+                    });
+                }
+            });
+
+            // 计算总数
+            const totalHighlights = allHighlights['觉察'].length +
+                                   allHighlights['接纳'].length +
+                                   allHighlights['行动'].length;
+
+            // 构建正向亮点内容（只是内部 HTML，不含外层卡片包装）
+            let highlightsInnerHTML = '';
+
+            if (totalHighlights === 0) {
+                highlightsInnerHTML = `
+                    <div class="highlights-empty">
+                        还没有记录到正向的时刻<br><br>
+                        当你在对话中有所觉察、接纳自己、或采取行动时<br>
+                        这里会记录下来
+                    </div>
+                `;
+            } else {
+                const categories = [
+                    { type: '觉察', emoji: '🔍', items: allHighlights['觉察'] },
+                    { type: '接纳', emoji: '💚', items: allHighlights['接纳'] },
+                    { type: '行动', emoji: '🚀', items: allHighlights['行动'] }
+                ];
+
+                categories.forEach(cat => {
+                    if (cat.items.length > 0) {
+                        highlightsInnerHTML += `
+                            <div class="highlight-category-item" onclick="openHighlightDetail('${cat.type}')">
+                                <div class="highlight-category-item-left">
+                                    <span class="highlight-category-item-emoji">${cat.emoji}</span>
+                                    <span class="highlight-category-item-name">${cat.type}</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span class="highlight-category-item-count">${cat.items.length}次</span>
+                                    <span class="highlight-category-item-arrow">→</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+            }
+
+            // 显示负面模式列表
+            const detectedPatterns = JSON.parse(localStorage.getItem('detectedPatterns') || '[]');
+
+            const validPatterns = detectedPatterns.filter(p =>
+                p.name && p.name !== '未识别' && p.name !== '无明显模式'
+            );
+
+            let patternsInnerHTML = '';
+
+            if (validPatterns.length === 0) {
+                patternsInnerHTML = `
+                    <div class="highlights-empty">
+                        还没有浮现出模式<br><br>
+                        多聊几次，反复出现的卡点<br>
+                        会在这里慢慢显现
+                    </div>
+                `;
+            } else {
+                const patternStats = {};
+                validPatterns.forEach(p => {
+                    const quote = (Array.isArray(p.relatedMessages) && p.relatedMessages[0]) || p.userMessage || '';
+                    if (!patternStats[p.name]) {
+                        patternStats[p.name] = {
+                            name: p.name,
+                            emoji: p.emoji,
+                            count: 0,
+                            lastDate: p.date,
+                            lastTimestamp: p.timestamp,
+                            sampleQuote: quote
+                        };
+                    }
+                    patternStats[p.name].count++;
+                    if (p.timestamp > patternStats[p.name].lastTimestamp) {
+                        patternStats[p.name].lastDate = p.date;
+                        patternStats[p.name].lastTimestamp = p.timestamp;
+                        if (quote) patternStats[p.name].sampleQuote = quote;
+                    }
+                });
+
+                // 出现 ≥2 次才上地图
+                const sortedPatterns = Object.values(patternStats)
+                    .filter(pattern => pattern.count >= 2)
+                    .sort((a, b) => b.count - a.count);
+
+                if (sortedPatterns.length === 0) {
+                    patternsInnerHTML = `
+                        <div class="highlights-empty">
+                            还没有浮现出模式<br><br>
+                            模式需要在多次对话中<br>
+                            反复出现才能确认
+                        </div>
+                    `;
+                } else {
+                    patternsInnerHTML = sortedPatterns.map(pattern => {
+                        if (pattern.count >= 3) {
+                            const emoji = (patternConfig[pattern.name] && patternConfig[pattern.name].emoji) || pattern.emoji;
+                            return `
+                            <div class="highlight-category-item" onclick="openPatternDetail('${pattern.name}')">
+                                <div class="highlight-category-item-left">
+                                    <span class="highlight-category-item-emoji">${emoji}</span>
+                                    <span class="highlight-category-item-name">${pattern.name}</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span class="highlight-category-item-count">${pattern.count}次</span>
+                                    <span class="highlight-category-item-arrow">→</span>
+                                </div>
+                            </div>
+                            `;
+                        }
+                        const raw = pattern.sampleQuote || '';
+                        const snippet = raw.length > 14 ? raw.slice(0, 14) + '…' : raw;
+                        return `
+                            <div class="highlight-category-item" onclick="openPatternDetail('${pattern.name}')">
+                                <div class="highlight-category-item-left">
+                                    <span class="highlight-category-item-name" style="color: #A0826D;">观察中</span>
+                                    <span style="font-size: 13px; color: #999;">${escapeHtml(snippet)}</span>
+                                </div>
+                                <span class="highlight-category-item-arrow">→</span>
+                            </div>
+                            `;
+                    }).join('');
+                }
+            }
+
+            // 合并成一张地图卡：正向在上，细分割线，负向在下（标题更轻）
+            patternList.innerHTML = `
+                <div style="background:#FFFFFF;border-radius:12px;box-shadow:0 1px 3px rgba(139,111,71,0.12),0 4px 8px rgba(139,111,71,0.08);overflow:hidden;">
+                    <div style="padding:20px 20px 16px;">
+                        <div class="highlights-title">✨ 你在一点点靠近</div>
+                        ${highlightsInnerHTML}
+                    </div>
+                    <div style="height:1px;background:rgba(212,165,116,0.18);margin:0 20px;"></div>
+                    <div style="padding:16px 20px 20px;">
+                        <div class="highlights-title" style="font-size:14px;color:#C0A898;">🌫️ 需要觉察</div>
+                        ${patternsInnerHTML}
+                    </div>
+                </div>
+            `;
+        }
+
+        // 加载个人资料
+        function loadProfile() {
+            const profile = getProfile();
+
+            if (!profile) {
+                // 显示引导流程
+                showOnboarding();
+                return;
+            }
+
+            document.getElementById('profileAnimal').textContent = profile.animal;
+            document.getElementById('profileTrait').textContent = profile.nickname
+                ? `${profile.nickname} · ${profile.animalName} - ${profile.trait}`
+                : `${profile.animalName} - ${profile.trait}`;
+            document.getElementById('profileScene').textContent = profile.scene;
+            document.getElementById('profileActions').innerHTML = profile.actions.map(a =>
+                `<span style="display:inline-block;background:rgba(212,165,116,0.12);border:1px solid rgba(212,165,116,0.35);border-radius:20px;padding:5px 14px;margin:4px 4px 4px 0;font-size:14px;color:#A0826D;">${escapeHtml(a)}</span>`
+            ).join('');
+
+            const currentInfoEl = document.getElementById('profileCurrentInfo');
+            if (currentInfoEl) {
+                const parts = [profile.gender, profile.ageRange, profile.status].filter(Boolean);
+                if (parts.length > 0) {
+                    currentInfoEl.innerHTML = `
+                        <div class="profile-label">现在的你</div>
+                        <div class="profile-value">${parts.map(p => `<span style="display:inline-block;background:rgba(212,165,116,0.12);border:1px solid rgba(212,165,116,0.35);border-radius:20px;padding:5px 14px;margin:4px 4px 4px 0;font-size:14px;color:#A0826D;">${escapeHtml(p)}</span>`).join('')}</div>
+                    `;
+                } else {
+                    currentInfoEl.innerHTML = '';
+                }
+            }
+        }
+
+        // 获取个人资料
+        function getProfile() {
+            const profileData = localStorage.getItem('idealSelfProfile');
+            return profileData ? JSON.parse(profileData) : null;
+        }
+
+        // 保存个人资料
+        function saveProfile(profile) {
+            localStorage.setItem('idealSelfProfile', JSON.stringify(profile));
+        }
+
+        // 模式配置（仅用于展示和分析参考）
+        const patternConfig = {
+            '拖延模式': { emoji: '⏰', description: '你注意到自己在拖延' },
+            '自我攻击模式': { emoji: '💔', description: '你在批判自己' },
+            '情绪卡点模式': { emoji: '🌫️', description: '你感到卡住了' },
+            '逃避模式': { emoji: '🏃', description: '你在逃避某些事' },
+            '完美主义模式': { emoji: '✨', description: '你对自己要求很高' },
+            '焦虑模式': { emoji: '😰', description: '你感到焦虑不安' },
+            '内耗模式': { emoji: '🌀', description: '你陷入了思维内耗' },
+            '讨好模式': { emoji: '😊', description: '你在讨好他人' }
+        };
+
+        // 保存检测到的模式
+        // conversationTimestamp 是所属对话的唯一标识，用于去重——
+        // 同一个对话只会对应一条模式记录，避免重复计数。
+        function saveDetectedPattern(pattern, relatedMessages, conversationTimestamp) {
+            // 过滤"无明显模式"和"未识别"
+            if (!pattern || !pattern.name || pattern.name === '无明显模式' || pattern.name === '未识别') {
+                return;
+            }
+
+            const patterns = JSON.parse(localStorage.getItem('detectedPatterns') || '[]');
+
+            // 去重：如果这个对话已经保存过模式，先移除旧记录再重新保存
+            const deduped = conversationTimestamp
+                ? patterns.filter(p => p.conversationTimestamp !== conversationTimestamp)
+                : patterns;
+
+            deduped.push({
+                ...pattern,
+                relatedMessages: relatedMessages,
+                patternSummary: pattern.patternSummary || '',  // 新增：AI 整合的 summary
+                patternSources: pattern.patternSources || relatedMessages || [],  // 新增：用户原话
+                conversationTimestamp: conversationTimestamp || null,
+                timestamp: new Date().toISOString(),
+                date: new Date().toLocaleDateString('zh-CN')
+            });
+            localStorage.setItem('detectedPatterns', JSON.stringify(deduped));
+        }
+
+        // 使用 AI 识别模式（方案B：AI判断 + 标签映射）
+        async function detectPatternWithAI(conversation) {
+            // 只提取用户的消息
+            const userMessages = conversation
+                .filter(msg => msg.isUser)
+                .map(msg => msg.text)
+                .join('\n');
+
+            const prompt = `你是一个对话分析专家。请分析这次对话，完成三个任务：
+
+===== 任务1：识别负面模式（如果有）=====
+
+你需要像医生诊断病人一样，通过用户的**症状和行为表现**来识别标签。
+
+重要规则：
+1. **症状导向**：用户可能不知道自己有什么问题，你需要通过他们描述的症状、行为、感受来诊断
+2. **区分主语**：只识别用户在谈论**自己**时的模式。如果用户说"我朋友很焦虑"，这不算
+3. **必须从8个标签中选择1个**：不能返回其他标签，如果都不符合，返回"无明显模式"
+4. **单一标签**：只返回1个最明显的标签，不要返回混合标签
+5. **关键词是参考不是硬性匹配**：理解整体语义，不要只看关键词
+
+8个标签（必须从中选择1个）：
+
+1. **拖延模式**
+   核心特征：说要做但没做，时间推迟
+   典型症状：明天再说、等会儿再做、一直没开始、迟迟没动手、说好要做但没做
+
+2. **自我攻击模式**
+   核心特征：事后批判自己，负面评价
+   典型症状：又搞砸了、我怎么这么没用、我真的很烂、我不行、我很失败
+
+3. **焦虑模式**
+   核心特征：对未来的担心，情绪化的恐惧，有身体反应
+   典型症状：睡不着、心跳快、担心会出事、害怕、恐惧、紧张、不安、坐立不安
+
+4. **逃避模式**
+   核心特征：用替代行为逃避要做的事
+   典型症状：刷手机、看剧、打游戏、暴食、睡觉、不想面对、躲起来
+
+5. **完美主义模式**
+   核心特征：事前对自己要求过高，害怕做不好
+   典型症状：怕做不好、要做到完美、还没准备好、不够好、必须完美、标准太高
+
+6. **内耗模式**
+   核心特征：反复思考、纠结，理性化的循环，对当下的决策困难
+   典型症状：想来想去、反复想、纠结、犹豫、摇摆、拿不定主意、想太多、钻牛角尖、不确定
+
+7. **讨好模式**
+   核心特征：委屈自己，照顾他人感受
+   典型症状：不好意思拒绝、不敢拒绝、怕得罪人、怕别人不高兴、委屈自己、迁就
+
+8. **情绪卡点模式**
+   核心特征：感到卡住、迷茫、不知所措
+   典型症状：不知道怎么办、卡住了、动不了、很迷茫、没有方向、找不到方向、理不清
+
+===== 任务2：生成即时洞察（1-2句话）=====
+
+基于这次对话（不仅仅是任务1识别的标签），生成一个简短的观察，用于对话结束时的即时反馈。
+
+**核心要求**：
+1. **不要被任务1的标签限制**：
+   - 即使任务1识别的是"拖延"，你也可以观察到"自我攻击"或"焦虑"
+   - 如果对话里有多个层面，优先选择用户最没意识到的那个
+   - 标签只是参考，不是唯一依据
+
+2. **不要重复用户已知的事实**：
+   - 不要说"你拖延了""你焦虑了""你在自我攻击"
+   - 要指出用户可能没注意到的细节：
+     * 语气中的情绪（"你说这话时有些自责"）
+     * 用词的细节（"你用了'又'这个字"）
+     * 深层的心理机制（"拖延背后，可能是害怕做不好"）
+     * 行为背后的模式（"你越觉得自己不行，越不敢开始"）
+
+3. **语气温和、不说教**：
+   - 像朋友的观察，不是咨询师的分析
+   - 不要用"建议你""你应该"这类词
+   - 用"可能""或许"等词降低肯定性
+
+4. **1-2句话，简短有力**
+
+5. **如果对话太短或太浅**（<3轮用户消息，或用户只是简单问候）：
+   - 返回空字符串 ""
+   - 不要强行生成洞察
+
+**示例（好的洞察）**：
+- "你用'又'这个字，说明你已经注意到了重复。拖延背后，可能是害怕做不好。"
+- "你说'废物'时对自己很苛刻。越觉得自己不行，越不敢开始。"
+- "你提到'应该'这个词三次。可能不是你真的想做，而是觉得必须做。"
+
+**示例（不好的洞察）**：
+- "你拖延了。" ❌ 重复用户已知的
+- "建议你先从小事做起。" ❌ 说教
+- "你需要调整心态。" ❌ 空洞
+
+返回字段：insight（字符串，1-2句话；如果对话太短/太浅，返回空字符串 ""）
+
+===== 任务3：提取正向亮点（如果有）=====
+
+从用户的话中提取属于以下3类的句子。一次对话可能有0-3个亮点。
+
+**重要：请基于语义理解，不要只看关键词！**
+
+1. 🔍 **觉察**（认知层面）
+   定义：看见自己的内在模式、情绪、想法
+
+   **核心原则：觉察必须是关于"自己的内在状态"，不是关于外部事物或专业知识**
+
+   关键句式（仅供参考）：
+   - "我发现..."
+   - "原来是..."
+   - "我注意到..."
+   - "我意识到..."
+
+   判断标准（重要）：
+   - 用户是否看见了自己的**心理/情绪/行为模式**？
+   - 用户是否理解了**自己情绪背后的原因**？
+   - 用户是否对**自己的内在状态**有了新的认识？
+
+   示例（都算觉察）：
+   ✓ "我发现我是因为怕做不好才拖延的"
+   ✓ "原来我在逃避"
+   ✓ "我意识到每次都是这样"
+   ✓ "这次我看明白了，我是在..."
+   ✓ "我发现自己又在自我否定了"
+   ✓ "我注意到自己一紧张就会overthink"
+
+   **不算觉察的情况（重要）：**
+   ✗ 对外部情况的分析："我知道面试官在意人岗匹配"（分析他人）
+   ✗ 专业知识/能力展示："我理解不同行业的营销差异"（专业洞察）
+   ✗ 事实陈述："我有服务大品牌的经验"（陈述事实）
+   ✗ 策略/计划："我可以在面试中主动提出XX"（行动策略）
+   ✗ 对工作内容的理解："营销需要创意和数据结合"（工作认知）
+
+   **记住：觉察的对象永远是"我的内在"（我的情绪、我的模式、我的心理状态），不是"我知道的外部知识"**
+
+2. 💚 **接纳**（情感层面）
+   定义：对自己温柔、不批判、允许当下的状态
+
+   关键句式（仅供参考）：
+   - "我允许自己..."
+   - "没关系"
+   - "慢慢来"
+   - "这很正常"
+
+   判断标准（重要）：
+   - 用户是否在对自己温柔？
+   - 用户是否停止了自我批判？
+   - 用户是否接受了当下的不完美？
+
+   示例（都算接纳）：
+   ✓ "我允许自己慢慢来"
+   ✓ "算了，不用那么着急"
+   ✓ "这样也挺好的"
+   ✓ "我可以休息一下"
+
+   不算接纳：
+   ✗ "我应该做得更好"（要求，不是接纳）
+   ✗ "我真的很差劲"（批判，不是接纳）
+
+3. 🚀 **行动**（行为层面）
+
+   ## 本质定义
+   行动 = 用户表达"此刻就要做/正在做/刚做完"的具体事情
+
+   为什么要识别行动？因为"说出来"本身就是一种推动，我们想记录用户从"想"到"做"的那个瞬间。
+   不是未来计划，不是抽象想法，而是"现在就动"的承诺。
+
+   ## 判断方法（理解语义，不要机械地找关键词）
+
+   判断时问自己三个问题：
+
+   **1. 时间性：是此刻/马上/刚完成，还是将来/假设？**
+
+   看整句话的语义，不要只看有没有"现在"这个词：
+
+   此刻/马上的信号：
+   - "去...了" / "...去了" → "了"表示即将发生或状态转变
+   - "先去..." / "就去..." → "先"/"就"表示马上
+   - "打算去...了" / "准备去...了" → "了"表示马上
+   - "我现在打算..." → 明确说"现在"
+
+   将来/假设的信号：
+   - "以后..." / "将来..." → 明确指向未来
+   - "打算每天..." / "打算养成..." → 习惯养成，不是此刻行动
+   - "找个时间..." / "有空了..." → 不确定的未来
+
+   **2. 确定性：是决定/承诺，还是想法/期待？**
+
+   决定的信号：
+   - "我去..." / "我做..." → 直接陈述
+   - "决定去..." → 明确决定
+
+   想法的信号：
+   - "希望..." / "想要..." → 期待，不是承诺
+   - "可能会..." / "看看..." → 不确定
+   - "应该..." / "得..." → 认知，不是决定
+
+   **3. 具体性：是可执行的动作，还是抽象概念？**
+
+   具体行动：睡觉、写报告、洗澡、跑步、吃饭
+   抽象概念：变得更好、提升自己、改变、成长
+
+   ## 边界情况和容易混淆的例子
+
+   **关于"打算"的判断（重点）：**
+   关键看时态，不是看有没有"现在"这个词
+   - "打算去睡觉了" → "了"表示马上/此刻 → ✅ 是行动
+   - "我现在打算去跑步" → "现在"表示此刻 → ✅ 是行动
+   - "那我打算先去..." → "先"表示马上 → ✅ 是行动
+   - "我打算以后每天早起" → "以后"+"每天"=将来习惯 → ❌ 不是行动
+   - "我打算找个时间学英语" → "找个时间"=不确定的将来 → ❌ 不是行动
+
+   **关于倒装和口语表达：**
+   - "睡觉去了" / "去睡觉了" → 都是行动（倒装不影响）
+   - "先去洗个澡" → 是行动（"先"表示现在）
+   - "就去做了" → 是行动（已完成）
+
+   **一次对话中有多个行动 - 处理覆盖和取消：**
+
+   如果用户在对话中改变主意，只记录最终决定：
+
+   情况1 - 转折取消（只记录最后的）：
+   用户："打算去睡觉了"
+   （聊了几句后）
+   用户："但想起明天要交报告，算了还是先写吧"
+   → 只记录"写报告"，"睡觉"被取消了
+
+   识别信号：但是、不过、算了、还是、改成、决定不...了
+
+   情况2 - 顺序执行（都记录）：
+   用户："我先去洗个澡，然后写报告"
+   → 记录"洗澡"和"写报告"两个
+
+   识别信号：先...然后、接着、之后
+
+   情况3 - 只是犹豫，没有决定（不记录）：
+   用户："不知道该睡觉还是写报告...还是纠结..."
+   → 没有行动（只是在犹豫）
+
+   ## 记住核心
+
+   理解用户想表达什么，不要机械地检查有没有某些词。
+   用户的表达方式千变万化，重要的是理解语义：
+   - 时态是什么？（此刻 vs 将来）
+   - 是决定还是想法？（承诺 vs 期待）
+   - 是具体还是抽象？（可执行 vs 概念）
+
+   如果符合"此刻要做/正在做/刚做完 + 具体动作"的语义，就是行动。
+
+注意：
+- 对于正向亮点（觉察/接纳/行动）：如果用户在对话中说了多句相似的话，请整合成一条 summary，但保留所有原话到 sources
+- 对于负面模式：同样整合相关的原话，生成 summary 和 sources
+- 基于语义理解，不要只匹配关键词
+
+用户的消息：
+${userMessages}
+
+请用以下JSON格式回复（只返回JSON，不要其他内容）：
+{
+  "keyPoints": ["用户的原话1（逐字引用，不得改写或总结）", "用户的原话2", "用户的原话3"],
+  "pattern": "标签名称（必须是上面8个之一，或'无明显模式'）",
+  "emoji": "对应emoji",
+  "description": "简短描述",
+  "patternSummary": "如果识别到负面模式，整合相关原话，描述这个模式在本次对话中的表现（保留用户语义和逻辑关系，不加AI概念）",
+  "patternSources": ["识别到模式的用户原话1", "用户原话2"],
+  "insight": "任务2生成的即时洞察（1-2句话，对话太短/太浅时返回空字符串\"\"）",
+  "highlights": [
+    {
+      "type": "觉察",
+      "summary": "一句话点出这次觉察最本质的那一点（如："你发现……""你看见……"）",
+      "sources": ["触发这个觉察的所有相关原话1", "原话2", "原话3"],
+      "emoji": "🔍"
+    },
+    {
+      "type": "接纳",
+      "summary": "一句话点出这次接纳最本质的那一点（如："你允许自己……""你对自己温柔了一下"）",
+      "sources": ["触发这个接纳的所有相关原话1", "原话2"],
+      "emoji": "💚"
+    },
+    {
+      "type": "行动",
+      "summary": "一句话点出这次行动最本质的那一点（如："你决定……""你迈出去了"）",
+      "sources": ["触发这个行动的所有相关原话1", "原话2"],
+      "emoji": "🚀"
+    }
+  ]
+}
+
+**重要说明**：
+- summary 口吻：温柔、陪伴、不评判，像"理想的自己"在说话，以"你"开头，不得用"用户"
+- **summary 是「一击」不是「清单」**：如果这次有多个看似不同的觉察/接纳/行动点，它们大概率来自同一次对话、同一种情绪，请穿透表面，提炼出那**一个**最本质的洞察，用一句话说出来——绝不要并列罗列成"你A，也B，同时C"
+- **summary 要具体到能让用户一眼认领**（"对，就是这个"），不要用"你看见了内心深处的渴望"这种放之四海皆准的套话
+- **summary 宁短勿长**：通常一句话；只有1句原话时，基本贴着原话说，绝不比原话长
+- **sources 和 summary 分工不同**：sources 是「追溯线索」，把相关原话都放进来没关系；summary 是「一句话洞察」，不需要逐句覆盖 sources 里的每个点
+- sources：把所有对这条 summary 有贡献的用户原话都放进来（不只是最直接的1句），按对话顺序排列；如果用户随后用"打错了"/"不对"/"哈哈"/"重新说"等方式纠正了某句话，只保留纠正后的版本，错误版本和纠错说明本身都不放进 sources
+- 如果某类亮点（觉察/接纳/行动）在对话中不存在，就不要包含在 highlights 里，highlights 可以是空数组 []
+- patternSummary 同样用"你"开头的温柔口吻描述负面模式在本次对话中的表现
+- 所有 emoji 必须按照上面定义的使用，不要修改`;
+
+            try {
+                console.log('[模式识别] 开始请求 API');
+                const aiResponse = await chatWithAI(prompt, [{ role: "user", content: prompt }]);
+
+                console.log('[模式识别] AI原始返回:', aiResponse);
+
+                // 尝试解析 JSON
+                const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    const result = JSON.parse(jsonMatch[0]);
+                    console.log('[模式识别] 解析结果:', result.pattern, result.highlights?.length, '个亮点');
+
+                    // 验证返回的标签是否在预定义列表中
+                    const validLabels = ['拖延模式', '自我攻击模式', '焦虑模式', '逃避模式',
+                                        '完美主义模式', '内耗模式', '讨好模式', '情绪卡点模式'];
+
+                    if (!validLabels.includes(result.pattern) && result.pattern !== '无明显模式') {
+                        console.warn('AI返回了未预定义的标签:', result.pattern, '，标记为无明显模式');
+                        result.pattern = '无明显模式';
+                        result.emoji = '💭';
+                    }
+
+                    // 统一emoji（确保使用预定义的emoji）
+                    const emojiMap = {
+                        '拖延模式': '⏰',
+                        '自我攻击模式': '💔',
+                        '焦虑模式': '😰',
+                        '逃避模式': '🏃',
+                        '完美主义模式': '✨',
+                        '内耗模式': '🌀',
+                        '讨好模式': '😊',
+                        '情绪卡点模式': '🌫️',
+                        '无明显模式': '💭'
+                    };
+
+                    if (emojiMap[result.pattern]) {
+                        result.emoji = emojiMap[result.pattern];
+                    }
+
+                    // 处理正向亮点（新格式：summary + sources）
+                    const highlights = result.highlights || [];
+                    // 过滤 sources 中的无效项（纯拼音/纯英文字母、过短的字符串）
+                    const isValidSource = s => {
+                        if (!s || typeof s !== 'string') return false;
+                        const trimmed = s.trim();
+                        if (trimmed.length < 2) return false;
+                        if (/^[a-zA-Z\s]+$/.test(trimmed)) return false; // 纯拼音/英文，排除打错字
+                        return true;
+                    };
+                    // 验证highlights格式
+                    const validHighlights = highlights.filter(h => {
+                        const hasType = h.type && ['觉察', '接纳', '行动'].includes(h.type);
+                        const hasSummary = h.summary && typeof h.summary === 'string';
+                        h.sources = (h.sources || []).filter(isValidSource); // 清洗 sources
+                        const hasSources = h.sources.length > 0;
+                        return hasType && hasSummary && hasSources;
+                    });
+
+                    // 处理负面模式的 summary 和 sources
+                    const patternSummary = result.patternSummary || '';
+                    const patternSources = result.patternSources || result.keyPoints || [];
+
+                    return {
+                        name: result.pattern,
+                        emoji: result.emoji,
+                        description: result.description,
+                        keyPoints: result.keyPoints,
+                        patternSummary: patternSummary,  // 新增
+                        patternSources: patternSources,  // 新增
+                        insight: result.insight || '',  // 新增：即时洞察
+                        trigger: 'AI识别',
+                        highlights: validHighlights  // 新格式：包含 summary 和 sources
+                    };
+                }
+
+                return null;
+            } catch (error) {
+                console.error('[模式识别] 捕获到错误:', error.message, error);
+                return null;
+            }
+        }
+
+        // 自动保存当前对话
+        function autoSaveCurrentConversation() {
+            if (currentConversation.length === 0) {
+                return;
+            }
+
+            // 如果没有对话ID，创建一个新的
+            if (!currentConversationId) {
+                currentConversationId = 'draft_' + Date.now();
+            }
+
+            // 保存到 localStorage（连同当天心情和最后活跃日期一起存）
+            localStorage.setItem('currentConversationDraft', JSON.stringify({
+                id: currentConversationId,
+                messages: currentConversation,
+                mood: currentMood,
+                lastActiveDate: new Date().toDateString(),  // 最后活跃日期，用于跨天判断
+                timestamp: new Date().toISOString()
+            }));
+        }
+
+        // 恢复草稿对话
+        function restoreDraftConversation() {
+            const draft = localStorage.getItem('currentConversationDraft');
+            if (!draft) return false;
+
+            try {
+                const draftData = JSON.parse(draft);
+                currentConversation = draftData.messages || [];
+                currentConversationId = draftData.id;
+                currentMood = draftData.mood || null;
+
+                // 恢复草稿时，明确设置为非历史查看模式
+                isViewingHistory = false;
+
+                // 恢复到界面
+                chatContainer.innerHTML = '';
+                currentConversation.forEach(msg => {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message';
+
+                    const textDiv = document.createElement('div');
+                    textDiv.className = `message-text ${msg.isUser ? 'user-text' : 'ai-text'}`;
+                    textDiv.textContent = msg.text;
+
+                    messageDiv.appendChild(textDiv);
+                    chatContainer.appendChild(messageDiv);
+                });
+
+                // 恢复到 conversationHistory
+                conversationHistory = [{
+                    role: "system",
+                    content: generateSystemPrompt()
+                }];
+                currentConversation.forEach(msg => {
+                    conversationHistory.push({
+                        role: msg.isUser ? "user" : "assistant",
+                        content: msg.text
+                    });
+                });
+
+                scrollChatToBottom();
+                return true;
+            } catch (e) {
+                console.error('恢复草稿失败:', e);
+                return false;
+            }
+        }
+
+        // 清除草稿
+        function clearDraftConversation() {
+            localStorage.removeItem('currentConversationDraft');
+            currentConversationId = null;
+        }
+
+        // 一次对话需要达到的「用户发言条数」，达到后即视为一篇完整的对话
+        // 打开 App 时处理上次留下的草稿：
+        // - 草稿的 lastActiveDate 不等于今天：跨天了，自动收尾保存（后台识别模式），归档到 lastActiveDate
+        // - 草稿的 lastActiveDate 等于今天：恢复到内存里等用户回到对话页继续
+        // - 0 句草稿：直接清掉，当成没聊过
+        // 无论哪种，都不再自动跳进对话页——统一停在首页。
+        function handleDraftOnStartup() {
+            const draft = localStorage.getItem('currentConversationDraft');
+            if (!draft) return;
+
+            let draftData;
+            try {
+                draftData = JSON.parse(draft);
+            } catch (e) {
+                console.error('解析草稿失败:', e);
+                return;
+            }
+
+            const messages = draftData.messages || [];
+            const userTurns = messages.filter(m => m.isUser).length;
+
+            // 0 句草稿直接清掉
+            if (userTurns === 0) {
+                clearDraftConversation();
+                return;
+            }
+
+            // 检查是否跨天
+            const draftDate = draftData.lastActiveDate || new Date(draftData.timestamp).toDateString();
+            const today = new Date().toDateString();
+
+            if (draftDate !== today) {
+                // 跨天了，自动收尾（异步，不阻塞首页渲染），归档到 lastActiveDate
+                autoFinalizeDraft(draftData, draftDate);
+            } else {
+                // 还是今天，恢复待续
+                restoreDraftConversation();
+            }
+        }
+
+        // 自动收尾一篇草稿：保存进历史 + 后台识别模式，然后清掉草稿
+        async function autoFinalizeDraft(draftData, archiveDate) {
+            const messages = draftData.messages || [];
+            if (messages.length === 0) {
+                clearDraftConversation();
+                return;
+            }
+
+            await finalizeConversation(messages, draftData.mood || null, archiveDate);
+            clearDraftConversation();
+
+            // 若用户此刻正停在首页，刷新一下日记列表，让这篇刚收尾的对话出现
+            if (document.getElementById('diaryPage').classList.contains('active')) {
+                loadDiaryList();
+            }
+            if (document.getElementById('patternPage').classList.contains('active')) {
+                loadPatternList();
+            }
+        }
+
+        // 把一段对话收尾保存：识别模式 + 写进历史库 + 维护模式记录。
+        // 不碰任何聊天界面，也不开启新对话——纯粹的"存档"逻辑，
+        // 这样既能给"手动结束对话"用，也能给"打开 App 时自动收尾草稿"用。
+        // archiveDate: 归档日期（可选），不传则用当前日期
+        async function finalizeConversation(messages, mood, archiveDate) {
+            if (!messages || messages.length === 0) return;
+
+            // 使用 AI 识别模式
+            const detectedPattern = await detectPatternWithAI(messages);
+
+            if (detectedPattern) {
+                console.log('AI识别结果:', detectedPattern);
+            } else {
+                console.log('未识别到模式');
+            }
+
+            // 生成对话预览（取用户第一句话的前30个字）
+            const firstUserMessage = messages.find(msg => msg.isUser);
+            const preview = firstUserMessage ? firstUserMessage.text.substring(0, 30) + (firstUserMessage.text.length > 30 ? '...' : '') : '';
+
+            // 这个时间戳同时作为对话记录和模式记录的唯一标识，用于去重
+            const conversationTimestamp = new Date().toISOString();
+
+            // 归档日期：优先用传入的，否则用当前日期
+            const finalArchiveDate = archiveDate || new Date().toLocaleDateString('zh-CN');
+
+            // 保存对话记录
+            allConversations.push({
+                date: finalArchiveDate,  // 使用归档日期
+                mood: mood, // 保存心情
+                pattern: detectedPattern ? detectedPattern.name : '未识别',
+                patternEmoji: detectedPattern ? detectedPattern.emoji : '💭',
+                patternMethod: 'AI识别',
+                patternTrigger: detectedPattern ? 'AI语义分析' : '',
+                hasActionAdvice: detectedPattern ? (detectedPattern.hasActionAdvice || false) : false,
+                actionAdvice: detectedPattern ? (detectedPattern.actionAdvice || '') : '',
+                preview: preview,
+                messages: messages,
+                timestamp: conversationTimestamp,
+                highlights: detectedPattern ? (detectedPattern.highlights || []) : []  // 新增：保存正向亮点
+            });
+
+            localStorage.setItem('allConversations', JSON.stringify(allConversations));
+
+            // 每次识别到有效模式就保存一条记录（用对话时间戳去重，一个对话只对应一条）。
+            // "≥2次才算模式"的判断放在模式地图的展示环节统一处理，这样次数永远等于对话数。
+            let patternCount = 0;
+            if (detectedPattern && detectedPattern.name !== '未识别' && detectedPattern.name !== '无明显模式') {
+                const relatedMessages = detectedPattern.keyPoints || [];
+                console.log(`保存模式"${detectedPattern.name}"，关键句:`, relatedMessages);
+                saveDetectedPattern(detectedPattern, relatedMessages, conversationTimestamp);
+
+                // 若这条模式已坐实（≥3 次），顺手刷新它的「共同点」反映并缓存。
+                // 这样打开模式卡片永远 0 等待，也只在真的又多一次时才花这点 token。
+                const cntNow = JSON.parse(localStorage.getItem('detectedPatterns') || '[]')
+                    .filter(p => p.name === detectedPattern.name).length;
+                patternCount = cntNow;
+                if (cntNow >= 3) {
+                    generateAndCacheReflection(detectedPattern.name);
+                }
+            }
+
+            // 返回识别结果，供洞察卡片使用
+            return {
+                pattern: detectedPattern ? detectedPattern.name : '无明显模式',
+                insight: detectedPattern ? (detectedPattern.insight || '') : '',
+                highlights: detectedPattern ? (detectedPattern.highlights || []) : [],
+                patternCount: patternCount  // 这个模式累计出现的次数（≥2 才在模式地图显示）
+            };
+        }
+
+        // 结束当前对话并保存（已废弃，被 closeDiary 替代）
+        async function endConversation() {
+            // 重定向到 closeDiary
+            await closeDiary();
+        }
+
+        // 查看对话详情
+        function viewConversation(index) {
+            const conversation = allConversations[index];
+            if (!conversation) return;
+            
+            // 查看历史记录埋点
+            trackEvent('view_history', { conversationIndex: index });
+
+            // 标记为查看历史对话模式
+            isViewingHistory = true;
+            currentConversationId = conversation.timestamp;
+
+            // 切换到对话页
+            switchPage('chatPage');
+
+            // 清空当前对话界面
+            chatContainer.innerHTML = '';
+
+            // 重新加载这个对话的所有消息
+            conversation.messages.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message';
+
+                const textDiv = document.createElement('div');
+                textDiv.className = `message-text ${msg.isUser ? 'user-text' : 'ai-text'}`;
+                textDiv.textContent = msg.text;
+
+                messageDiv.appendChild(textDiv);
+                chatContainer.appendChild(messageDiv);
+            });
+
+            // 恢复对话历史到 conversationHistory
+            conversationHistory = [{
+                role: "system",
+                content: generateSystemPrompt()
+            }];
+
+            conversation.messages.forEach(msg => {
+                conversationHistory.push({
+                    role: msg.isUser ? "user" : "assistant",
+                    content: msg.text
+                });
+            });
+
+            // 恢复 currentConversation
+            currentConversation = [...conversation.messages];
+
+            // 滚动到底部
+            scrollChatToBottom();
+        }
+
+        // 开始新对话
+        function startNewConversation() {
+            // 清除草稿
+            clearDraftConversation();
+
+            // 清空当前对话和心情
+            currentConversation = [];
+            currentMood = null;
+            conversationHistory = [{
+                role: "system",
+                content: generateSystemPrompt()
+            }];
+
+            // 清除"正在查看历史对话"标记
+            isViewingHistory = false;
+
+            // 清空聊天界面
+            chatContainer.innerHTML = '';
+
+            // 显示心情选择
+            showMoodSelector();
+
+            // 显示新对话开始提示
+            const openingLine = '今天感觉怎么样？';
+            addTypingMessage(openingLine, false);
+            // 开场白也要进入对话历史，否则 AI 看不到自己说过开场白，会重复发问
+            conversationHistory.push({
+                role: "assistant",
+                content: openingLine
+            });
+        }
+
+        // 从首页/模式地图的"+"按钮开始新对话
+        function startNewConversationFromButton() {
+            // 点击开始按钮埋点
+            trackEvent('click_start');
+            
+            // 如果正在查看历史对话，先清除标记，然后尝试恢复草稿或开新对话
+            if (isViewingHistory) {
+                isViewingHistory = false;
+                currentConversation = [];
+                chatContainer.innerHTML = '';
+            }
+
+            // 切换到对话页
+            switchPage('chatPage');
+
+            // 如果当前有对话（非历史对话），不清空，继续
+            if (currentConversation.length > 0) {
+                return;
+            }
+
+            // 如果没有对话，尝试恢复草稿
+            const hasRestored = restoreDraftConversation();
+
+            // 如果也没有草稿，才开始新对话
+            if (!hasRestored) {
+                startNewConversation();
+            }
+        }
+
+        // 模式地图顶部卡片：就地展开/收起理想画像详情
+        let idealExpanded = false;
+        function toggleIdealExpand() {
+            const details = document.getElementById('idealDetails');
+            const chevron = document.getElementById('idealChevron');
+            if (!details) return;
+            idealExpanded = !idealExpanded;
+            details.style.display = idealExpanded ? 'block' : 'none';
+            if (chevron) chevron.textContent = idealExpanded ? '↑' : '↓';
+        }
+
+        // 打开"理想的自己"完整画像弹窗
+        function openIdealDetail() {
+            const profile = getProfile();
+            if (!profile) return;
+
+            const overlay = document.createElement('div');
+            overlay.className = 'ideal-detail-overlay';
+            overlay.onclick = (e) => {
+                if (e.target === overlay) {
+                    overlay.remove();
+                }
+            };
+
+            overlay.innerHTML = `
+                <div class="ideal-detail-container" onclick="event.stopPropagation()">
+                    <button class="ideal-detail-close" onclick="this.closest('.ideal-detail-overlay').remove()">×</button>
+                    <div class="ideal-detail-emoji">${profile.animal}</div>
+                    <div class="ideal-detail-trait">像${profile.animalName}一样${profile.trait}</div>
+                    <div class="ideal-detail-section">
+                        <div class="ideal-detail-label">理想场景</div>
+                        <div class="ideal-detail-value">${escapeHtml(profile.scene)}</div>
+                    </div>
+                    <div class="ideal-detail-section">
+                        <div class="ideal-detail-label">行动方向</div>
+                        <div class="ideal-detail-value">${profile.actions.map(a => escapeHtml(a)).join('<br>')}</div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+        }
+
+        // 打开正向亮点详情弹窗
+        function openHighlightDetail(highlightType) {
+            // 收集这个类型的所有亮点
+            const allHighlights = [];
+
+            allConversations.forEach(conv => {
+                if (conv.highlights && Array.isArray(conv.highlights)) {
+                    conv.highlights.forEach(h => {
+                        if (h.type === highlightType) {
+                            // 兼容旧数据：旧格式只有 text，新格式有 summary + sources
+                            const summary = h.summary || h.text || '';
+                            const sources = (h.sources && h.sources.length > 0)
+                                ? h.sources
+                                : (h.text ? [h.text] : []);
+                            allHighlights.push({
+                                summary: summary,
+                                sources: sources,
+                                date: conv.date,
+                                timestamp: conv.timestamp
+                            });
+                        }
+                    });
+                }
+            });
+
+            if (allHighlights.length === 0) return;
+
+            // 按时间倒序，最多显示10条
+            const sortedHighlights = allHighlights
+                .sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''))
+                .slice(0, 10);
+
+            // emoji映射
+            const emojiMap = {
+                '觉察': '🔍',
+                '接纳': '💚',
+                '行动': '🚀'
+            };
+
+            // 反思语
+            const reflectionMap = {
+                '觉察': '你在一点点看清自己',
+                '接纳': '你在学会对自己温柔',
+                '行动': '你在一点点靠近'
+            };
+
+            const emoji = emojiMap[highlightType];
+            const reflection = reflectionMap[highlightType];
+
+            // 计算总次数（按 summary 数量）和总原话数量
+            const totalSummaries = allHighlights.length;
+            const totalSources = allHighlights.reduce((sum, h) => sum + (h.sources?.length || 0), 0);
+
+            // 按日期分组
+            const groupedByDate = {};
+            sortedHighlights.forEach(item => {
+                if (!groupedByDate[item.date]) {
+                    groupedByDate[item.date] = [];
+                }
+                groupedByDate[item.date].push(item);
+            });
+
+            // 生成HTML
+            let contentHTML = `
+                <div class="highlight-detail-header">
+                    <div class="highlight-detail-emoji">${emoji}</div>
+                    <div class="highlight-detail-title">${highlightType}</div>
+                    <div class="highlight-detail-subtitle">共 ${totalSummaries} 次 · 来自 ${totalSources} 句话</div>
+                </div>
+                <div class="highlight-detail-items">
+            `;
+
+            Object.entries(groupedByDate).forEach(([date, items]) => {
+                contentHTML += `<div class="highlight-detail-date-group">`;
+                contentHTML += `<div class="highlight-detail-date">${date}</div>`;
+
+                items.forEach((item, idx) => {
+                    const uniqueId = `highlight-${date}-${idx}`;
+                    const sourcesCount = item.sources?.length || 0;
+                    // 当 summary 就是唯一那句原话时（旧数据或单句），不显示折叠（避免重复）
+                    const isSameAsSingleSource = sourcesCount === 1 && item.sources[0] === item.summary;
+                    const showToggle = sourcesCount > 0 && !isSameAsSingleSource;
+
+                    contentHTML += `
+                        <div class="highlight-summary-card">
+                            <div class="highlight-summary-text">${escapeHtml(item.summary)}</div>
+                            ${showToggle ? `
+                                <div class="highlight-sources-toggle" onclick="toggleHighlightSources('${uniqueId}')">
+                                    💬 来自 ${sourcesCount} 句原话 <span class="toggle-icon" id="icon-${uniqueId}">▼</span>
+                                </div>
+                                <div class="highlight-sources-list" id="${uniqueId}" style="display: none;">
+                                    <div class="highlight-sources-label">你说：</div>
+                                    ${item.sources.map(source =>
+                                        `<div class="highlight-source-item">"${escapeHtml(source)}"</div>`
+                                    ).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+
+                contentHTML += `</div>`;
+            });
+
+            contentHTML += `</div>`;
+            contentHTML += `<div class="highlight-detail-footer">—— ${reflection}</div>`;
+
+            // 显示弹窗
+            const overlay = document.createElement('div');
+            overlay.className = 'highlight-detail-overlay';
+            overlay.onclick = (e) => {
+                if (e.target === overlay) {
+                    overlay.remove();
+                }
+            };
+
+            overlay.innerHTML = `
+                <div class="highlight-detail-container" onclick="event.stopPropagation()">
+                    <button class="highlight-detail-close" onclick="this.closest('.highlight-detail-overlay').remove()">×</button>
+                    ${contentHTML}
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+        }
+
+        // 切换原话展开/收起
+        function toggleHighlightSources(id) {
+            const sourcesDiv = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id);
+            if (sourcesDiv && icon) {
+                if (sourcesDiv.style.display === 'none') {
+                    sourcesDiv.style.display = 'block';
+                    icon.textContent = '▲';
+                } else {
+                    sourcesDiv.style.display = 'none';
+                    icon.textContent = '▼';
+                }
+            }
+        }
+
+        // 打开模式详情弹窗
+        function openPatternDetail(patternName) {
+            const detectedPatterns = JSON.parse(localStorage.getItem('detectedPatterns') || '[]');
+
+            // 该模式的所有记录，按时间升序（早 → 近）
+            const patternRecords = detectedPatterns
+                .filter(p => p.name === patternName)
+                .sort((a, b) => (a.timestamp || '').localeCompare(b.timestamp || ''));
+
+            if (patternRecords.length === 0) return;
+
+            const patternInfo = patternConfig[patternName] || { emoji: '💭' };
+            const emoji = patternInfo.emoji;
+            const count = patternRecords.length;
+            const isPattern = count >= 3; // ≥3 才叫「模式」；2 次只是「观察中」
+
+            // 计算相对时间
+            function getRelativeTime(patternRecords) {
+                if (patternRecords.length < 2) return '';
+                const dates = patternRecords.map(r => new Date(r.timestamp || r.date)).filter(d => !isNaN(d));
+                if (dates.length < 2) return '';
+
+                const earliest = Math.min(...dates);
+                const latest = Math.max(...dates);
+                const daysDiff = Math.ceil((latest - earliest) / (1000 * 60 * 60 * 24));
+
+                if (daysDiff <= 30) return `最近${daysDiff}天内`;
+                if (daysDiff <= 90) return `最近${Math.ceil(daysDiff / 30)}个月内`;
+                return `最近${Math.ceil(daysDiff / 365)}年内`;
+            }
+
+            // 标题区：模式 → emoji + 名称 + 次数；观察中 → 只写「观察中」三个字 + 相对时间
+            let contentHTML;
+            if (isPattern) {
+                const lastDate = patternRecords[count - 1].date || '';
+                contentHTML = `
+                    <div class="pattern-detail-header">
+                        <div class="pattern-detail-emoji">${emoji}</div>
+                        <div class="pattern-detail-title">${patternName}</div>
+                        <div class="pattern-detail-subtitle">共 ${count} 次 · 最近 ${lastDate}</div>
+                    </div>
+                `;
+            } else {
+                const relativeTime = getRelativeTime(patternRecords);
+                contentHTML = `
+                    <div class="pattern-detail-header">
+                        <div class="pattern-detail-title">观察中</div>
+                        <div class="pattern-detail-subtitle">${relativeTime}</div>
+                    </div>
+                `;
+            }
+
+            // 观察中的开场白（去掉白色框，直接文字，有留白）
+            if (!isPattern) {
+                contentHTML += `
+                    <div style="margin: 32px 0; font-size: 16px; color: #A0826D; line-height: 2; text-align: left;">
+                        类似的话，最近是第二次了。<br>
+                        还不确定它会不会反复出现，先替你记下来。
+                    </div>
+                `;
+            }
+
+            // 那些你说过的话（去掉白色框和小标题，直接显示，按日期分组）
+            const recentRecords = patternRecords.slice(-5).reverse();
+
+            // 按日期分组
+            const groupedByDate = {};
+            recentRecords.forEach(r => {
+                const date = r.date || '未知日期';
+                if (!groupedByDate[date]) {
+                    groupedByDate[date] = [];
+                }
+                // 使用新的数据结构：patternSummary + patternSources
+                groupedByDate[date].push({
+                    summary: r.patternSummary || '',
+                    sources: r.patternSources || r.relatedMessages || (r.userMessage ? [r.userMessage] : (r.trigger ? [r.trigger] : ['（无详细记录）']))
+                });
+            });
+
+            contentHTML += `
+                <div style="margin: 32px 0;">
+                    ${Object.entries(groupedByDate).map(([date, items]) => `
+                        <div style="margin-bottom: 24px;">
+                            <div style="color: #999999; font-size: 14px; margin-bottom: 8px;">${date}</div>
+                            ${items.map((item, idx) => {
+                                const uniqueId = `pattern-${date.replace(/\//g, '-')}-${idx}`;
+                                const sourcesCount = item.sources?.length || 0;
+
+                                // 如果有 summary，显示整合版；否则显示原话
+                                if (item.summary) {
+                                    return `
+                                        <div class="highlight-summary-card">
+                                            <div class="highlight-summary-text">${escapeHtml(item.summary)}</div>
+                                            ${sourcesCount > 0 ? `
+                                                <div class="highlight-sources-toggle" onclick="toggleHighlightSources('${uniqueId}')">
+                                                    💬 来自 ${sourcesCount} 句原话 <span class="toggle-icon" id="icon-${uniqueId}">▼</span>
+                                                </div>
+                                                <div class="highlight-sources-list" id="${uniqueId}" style="display: none;">
+                                                    <div class="highlight-sources-label">你说：</div>
+                                                    ${item.sources.map(source =>
+                                                        `<div class="highlight-source-item">"${escapeHtml(source)}"</div>`
+                                                    ).join('')}
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                    `;
+                                } else {
+                                    // 兼容旧数据：没有 summary，直接显示原话
+                                    return item.sources.map(msg =>
+                                        `<div style="color: #333333; font-size: 15px; line-height: 1.8; margin-bottom: 8px;">"${escapeHtml(msg)}"</div>`
+                                    ).join('');
+                                }
+                            }).join('')}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            // 尾巴（左对齐，用破折号开头）
+            let tail;
+            if (!isPattern) {
+                tail = '如果再出现一次，也许就值得认真看看了。';
+            } else {
+                const cached = getCachedReflection(patternName, count);
+                tail = cached || fallbackQuestion(count);
+                if (!cached) {
+                    generateAndCacheReflection(patternName);
+                }
+            }
+            contentHTML += `<div style="margin-top: 32px; color: #A0826D; font-size: 15px; line-height: 1.9; text-align: left;">—— ${escapeHtml(tail)}</div>`;
+
+            // 插入内容并显示弹窗
+            document.getElementById('patternDetailContent').innerHTML = contentHTML;
+            document.getElementById('patternDetailOverlay').style.display = 'flex';
+        }
+
+        // ====== 模式反映：AI 生成的「共同点 + 追问」，只用于 ≥3 次的模式，带缓存 ======
+
+        // AI 不可用 / 尚未生成时的兜底问句（多句轮换，避免又变成新的模板）
+        function fallbackQuestion(seed) {
+            const qs = ['像同一个你吗？', '上次这么说，是什么时候？', '你注意到了吗？', '这些话，你还记得吗？'];
+            return qs[(seed || 0) % qs.length];
+        }
+
+        // 读缓存：只有「基于当前次数生成的」才算有效，次数变了（又多了一次）就要重算
+        function getCachedReflection(patternName, count) {
+            const all = JSON.parse(localStorage.getItem('patternReflections') || '{}');
+            const r = all[patternName];
+            return (r && r.count === count && r.text) ? r.text : null;
+        }
+
+        // 调 AI 生成这条模式的「共同点 + 追问」一句话，并按当前次数缓存到本地
+        async function generateAndCacheReflection(patternName) {
+            const detectedPatterns = JSON.parse(localStorage.getItem('detectedPatterns') || '[]');
+            const records = detectedPatterns.filter(p => p.name === patternName);
+            if (records.length < 3) return; // 只为坐实的模式生成
+
+            const quotes = [];
+            records.forEach(r => {
+                const msgs = Array.isArray(r.relatedMessages) ? r.relatedMessages
+                    : (r.userMessage ? [r.userMessage] : []);
+                msgs.forEach(m => quotes.push(`（${r.date || ''}）${m}`));
+            });
+            if (quotes.length === 0) return;
+
+            const prompt = `你是一面镜子，不是建议者。下面是同一个人在不同时间、都被识别为「${patternName}」的几段原话。
+请用一句话指出这些话之间的【共同点】，再用一个【问句】把觉察交还给他。
+
+铁律：
+- 只能说你观察到的共同点 + 一个问句，别的都不要。
+- 禁止任何建议和祈使句（不准出现"试着/可以/不妨/要不要/应该"之类）。
+- 禁止下诊断断言（不要说"你在焦虑/你在内耗"这类）。
+- 纯文本，不超过 40 字，不换行，不要加引号。
+
+原话：
+${quotes.join('\n')}
+
+直接输出那一句话：`;
+
+            try {
+                let text = await chatWithAI(prompt, [{ role: 'user', content: prompt }]);
+                text = (text || '').trim();
+                text = text.replace(/^["「『]+|["」』]+$/g, '').replace(/\s+/g, ' ').trim();
+                if (!text) return;
+
+                const all = JSON.parse(localStorage.getItem('patternReflections') || '{}');
+                all[patternName] = { text, count: records.length, timestamp: new Date().toISOString() };
+                localStorage.setItem('patternReflections', JSON.stringify(all));
+            } catch (e) {
+                console.error('生成模式反映失败:', e);
+            }
+        }
+
+        // 关闭模式详情弹窗
+        function closePatternDetail() {
+            document.getElementById('patternDetailOverlay').style.display = 'none';
+        }
+
+        // 清理历史脏数据：把重复保存的模式记录去重，使模式次数与实际对话数一致。
+        // 兼容旧数据（没有 conversationTimestamp 的记录），用"模式名+日期"做兜底去重。
+        function cleanupDetectedPatterns() {
+            const patterns = JSON.parse(localStorage.getItem('detectedPatterns') || '[]');
+            if (patterns.length === 0) return;
+
+            const seen = new Set();
+            const cleaned = [];
+            for (const p of patterns) {
+                // 优先用 conversationTimestamp 去重，旧数据退化为"模式名+日期"
+                const key = p.conversationTimestamp
+                    ? `${p.name}__${p.conversationTimestamp}`
+                    : `${p.name}__${p.date}`;
+                if (seen.has(key)) continue;
+                seen.add(key);
+                cleaned.push(p);
+            }
+
+            if (cleaned.length !== patterns.length) {
+                console.log(`已清理重复模式记录：${patterns.length} → ${cleaned.length}`);
+                localStorage.setItem('detectedPatterns', JSON.stringify(cleaned));
+            }
+        }
+
+        // 初始化
+        // 字体加载完成后触发首页文字淡入动画
+        // 解决手机上"动画播完但字体还没加载好导致文字不可见"的问题
+        function triggerTextAnimation() {
+            document.querySelectorAll('.text-line').forEach(el => {
+                el.classList.add('animate');
+            });
+        }
+
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                triggerTextAnimation();
+            });
+        } else {
+            // 不支持 document.fonts 的浏览器（较老版本），延迟 800ms 触发
+            setTimeout(triggerTextAnimation, 800);
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            // 初始化主题
+            initTheme();
+            
+            // 初始化会话
+            await initSession();
+            // 页面加载埋点
+            trackEvent('page_load');
+            
+            // 清理历史脏数据（模式记录去重）
+            cleanupDetectedPatterns();
+
+            // 加载数据
+            const savedConversations = localStorage.getItem('allConversations');
+            if (savedConversations) {
+                allConversations = JSON.parse(savedConversations);
+            }
+
+            const savedPatterns = localStorage.getItem('patterns');
+            if (savedPatterns) {
+                patterns = JSON.parse(savedPatterns);
+            }
+
+            // 检查是否第一次使用
+            const profile = getProfile();
+            if (!profile) {
+                // 第一次使用，显示引导流程
+                showOnboarding();
+            } else {
+                // 处理上次的草稿：≥10 句自动收尾保存，不足则恢复待续（都不跳转）
+                handleDraftOnStartup();
+
+                // 默认停在首页（不再因为有草稿就自动跳进对话页）
+                switchPage('diaryPage');
+            }
+        });
+
+        // 监听页面关闭/刷新事件，自动保存草稿
+        window.addEventListener('beforeunload', (e) => {
+            // 页面离开埋点
+            trackEvent('page_leave');
+            
+            if (currentConversation.length === 0 || isViewingHistory) return;
+
+            const userTurns = currentConversation.filter(m => m.isUser).length;
+            if (userTurns > 0) {
+                // 有对话内容，保存草稿
+                autoSaveCurrentConversation();
+            }
+        });
+
+        // 超时自动保存（20分钟无操作）
+        let inactivityTimer = null;
+        const INACTIVITY_TIMEOUT = 20 * 60 * 1000; // 20分钟
+
+        function resetInactivityTimer() {
+            if (inactivityTimer) {
+                clearTimeout(inactivityTimer);
+            }
+
+            inactivityTimer = setTimeout(async () => {
+                // 20分钟无操作，自动保存草稿
+                if (currentConversation.length === 0 || isViewingHistory) return;
+
+                const userTurns = currentConversation.filter(m => m.isUser).length;
+                if (userTurns > 0) {
+                    // 有对话内容，保存草稿
+                    autoSaveCurrentConversation();
+                }
+            }, INACTIVITY_TIMEOUT);
+        }
+
+        // 监听用户活动，重置超时计时器
+        ['mousedown', 'keydown', 'scroll', 'touchstart'].forEach(event => {
+            document.addEventListener(event, resetInactivityTimer, true);
+        });
+
+        // 初始化超时计时器
+        resetInactivityTimer();
+
+        // 对话功能（保留原有代码，稍后整合）
+        const chatContainer = document.getElementById('chatContainer');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendButton');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // 自动调整 textarea 高度
+        userInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
+        // 回车发送，Shift+回车换行
+        userInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        sendButton.addEventListener('click', sendMessage);
+
+        // 滚动到底部——真正的滚动容器是 .page（chatPage），不是 chatContainer
+        function scrollChatToBottom() {
+            const chatPage = document.getElementById('chatPage');
+            if (chatPage) {
+                chatPage.scrollTop = chatPage.scrollHeight;
+            }
+        }
+
+        function addMessage(text, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+
+            const textDiv = document.createElement('div');
+            textDiv.className = `message-text ${isUser ? 'user-text' : 'ai-text'}`;
+            textDiv.textContent = text;
+
+            messageDiv.appendChild(textDiv);
+            chatContainer.appendChild(messageDiv);
+            scrollChatToBottom();
+
+            // 保存到当前对话
+            currentConversation.push({
+                text: text,
+                isUser: isUser,
+                timestamp: new Date().toISOString()
+            });
+
+            // 自动保存
+            autoSaveCurrentConversation();
+
+            // 更新合上笔记本按钮的显示状态
+            updateCloseDiaryButton();
+        }
+
+        function addTypingMessage(text, isUser, callback) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+
+            const textDiv = document.createElement('div');
+            textDiv.className = `message-text ${isUser ? 'user-text' : 'ai-text'}`;
+
+            messageDiv.appendChild(textDiv);
+            chatContainer.appendChild(messageDiv);
+
+            // AI消息添加复制按钮
+            if (!isUser) {
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-btn';
+                copyBtn.textContent = '复制';
+                copyBtn.style.display = 'none';
+                copyBtn.onclick = function() {
+                    copyToClipboard(text, copyBtn);
+                };
+                messageDiv.appendChild(copyBtn);
+            }
+
+            let index = 0;
+            const typingSpeed = 50;
+
+            function typeNextChar() {
+                if (index < text.length) {
+                    textDiv.textContent += text[index];
+                    index++;
+                    scrollChatToBottom();
+                    setTimeout(typeNextChar, typingSpeed);
+                } else {
+                    // 打字完成后显示复制按钮
+                    if (!isUser) {
+                        const copyBtn = messageDiv.querySelector('.copy-btn');
+                        if (copyBtn) copyBtn.style.display = '';
+                    }
+                    if (callback) {
+                        callback();
+                    }
+                }
+            }
+
+            typeNextChar();
+
+            // 保存到当前对话
+            currentConversation.push({
+                text: text,
+                isUser: isUser,
+                timestamp: new Date().toISOString()
+            });
+
+            // 自动保存
+            autoSaveCurrentConversation();
+
+            // 更新合上笔记本按钮的显示状态
+            updateCloseDiaryButton();
+        }
+
+        function showLoading() {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message';
+            loadingDiv.id = 'loadingMessage';
+
+            const loadingContent = document.createElement('div');
+            loadingContent.className = 'loading';
+            loadingContent.innerHTML = `
+                <span>穿越时空的倾听</span>
+                <div class="loading-dots">
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                </div>
+            `;
+
+            loadingDiv.appendChild(loadingContent);
+            chatContainer.appendChild(loadingDiv);
+            scrollChatToBottom();
+        }
+
+        function removeLoading() {
+            const loadingDiv = document.getElementById('loadingMessage');
+            if (loadingDiv) {
+                loadingDiv.remove();
+            }
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
+        }
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            // 如果正在查看历史对话，显示温和提示
+            if (isViewingHistory) {
+                const tipDiv = document.createElement('div');
+                tipDiv.className = 'gentle-tip';
+                tipDiv.textContent = '这是历史对话，想继续聊天？返回首页，点击金色羽毛笔开始新对话';
+
+                // 插入到输入框上方
+                const inputContainer = document.querySelector('.input-container');
+                inputContainer.insertBefore(tipDiv, inputContainer.firstChild);
+
+                // 3秒后移除
+                setTimeout(() => tipDiv.remove(), 3000);
+                return;
+            }
+
+            userInput.disabled = true;
+            sendButton.disabled = true;
+            errorMessage.style.display = 'none';
+            
+            // 提交输入埋点
+            trackEvent('submit_input', { messageLength: message.length });
+
+            conversationHistory.push({
+                role: "user",
+                content: message
+            });
+
+            userInput.value = '';
+            userInput.style.height = 'auto';
+
+            // 历史记忆召回（纯本地关键词检索）：在历史对话里找与本次消息相关的用户原话。
+            // 这段"记忆指令"只临时拼进【这次请求】，不写入 conversationHistory，
+            // 避免记忆段落随对话累积、被存进草稿、或重复注入。
+            // 注意：buildMemoryContext 永远返回指令——召回到给原话，没召回到则明确"你没有过往记录"，
+            // 主动堵住 AI 顺口编造"我们之前聊过"的口子。
+            // 传入最近5轮对话作为上下文，避免"失忆"问题（换个问法就召回不到）
+            const recentMessages = currentConversation.slice(-5); // 最近5轮（包括AI和用户的话）
+            const memoryContext = buildMemoryContext(message, recentMessages);
+            let messagesForRequest = conversationHistory;
+            if (memoryContext) {
+                // 在 system prompt 后追加这条记忆指令，其余对话原样保留
+                messagesForRequest = [
+                    conversationHistory[0],
+                    { role: "system", content: memoryContext },
+                    ...conversationHistory.slice(1)
+                ];
+            }
+
+            // 网络请求在后台先发起，不浪费用户消息的打字时间。
+            // 但"思考中"和 AI 回复的【显示】要等用户消息完整显示后才开始，
+            // 避免"用户的话还没打完，下面就开始回复"的错乱观感。
+            const fetchPromise = chatWithAI(message, messagesForRequest);
+
+            // 用户消息开始逐字显示；完成后才进入"思考中 → AI 回复"环节
+            addTypingMessage(message, true, async () => {
+                showLoading();
+
+                try {
+                    const aiMessage = await fetchPromise;
+
+                    removeLoading();
+
+                    addTypingMessage(aiMessage, false);
+                    conversationHistory.push({
+                        role: "assistant",
+                        content: aiMessage
+                    });
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    removeLoading();
+                    showError(error.message || '发送失败，请稍后重试');
+                    // 网络错误埋点
+                    trackEvent('network_error', { error: error.message, function: 'sendMessage' });
+                } finally {
+                    userInput.disabled = false;
+                    sendButton.disabled = false;
+                    userInput.focus();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
